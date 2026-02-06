@@ -29,6 +29,13 @@ export default function BecomeHost() {
   const [scanResult, setScanResult] = useState(null);
   const [form, setForm] = useState(defaultForm);
   const [published, setPublished] = useState(false);
+  const scanState = loading
+    ? "running"
+    : scanResult
+      ? "done"
+      : photos.length > 0
+        ? "ready"
+        : "idle";
 
   const handlePhotoUpload = (event) => {
     const files = Array.from(event.target.files || []);
@@ -105,17 +112,33 @@ export default function BecomeHost() {
             Upload 6-12 photos of rooms, washrooms, and amenities. The AI will
             extract details from these images.
           </p>
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={handlePhotoUpload}
-          />
+          <div className="upload-box">
+            <div>
+              <p className="upload-title">Drop photos here or browse</p>
+              <p className="small">
+                Best results with wide-angle, well-lit shots. JPG/PNG.
+              </p>
+            </div>
+            <label className="upload-action">
+              <span>Choose files</span>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handlePhotoUpload}
+              />
+            </label>
+          </div>
+          <div className="upload-meta">
+            <span className="meta-pill">{photos.length} selected</span>
+            <span className="meta-pill">AI ready: {photos.length > 0 ? "Yes" : "No"}</span>
+          </div>
           {photos.length > 0 && (
             <div className="photo-grid">
               {photos.map((photo) => (
                 <div key={photo.name} className="photo-card">
                   <div className="photo-placeholder">{photo.name}</div>
+                  <p className="photo-size">{Math.round(photo.size / 1024)} kb</p>
                 </div>
               ))}
             </div>
@@ -123,17 +146,53 @@ export default function BecomeHost() {
         </div>
 
         <div className="scan-panel">
-          <h3>2. Auto-fill with AI</h3>
+          <div className="scan-head">
+            <div>
+              <p className="eyebrow">AI Studio</p>
+              <h3>2. Auto-fill with AI</h3>
+            </div>
+            <span className={`ai-status ${scanState}`}>{scanState}</span>
+          </div>
           <p className="small">
-            We scan the photos to detect rooms, amenities, and description.
+            We scan the photos to detect rooms, amenities, and description. This is
+            a simulated flow to show how the model experience will feel.
           </p>
-          <button type="button" className="primary" disabled={photos.length === 0 || loading} onClick={runScan}>
+          <div className="scan-steps">
+            <div className={`scan-step ${scanState}`}>
+              <span>01</span>
+              <p>Quality check & lighting balance</p>
+            </div>
+            <div className={`scan-step ${scanState}`}>
+              <span>02</span>
+              <p>Room layout & count detection</p>
+            </div>
+            <div className={`scan-step ${scanState}`}>
+              <span>03</span>
+              <p>Amenities & equipment extraction</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="primary"
+            disabled={photos.length === 0 || loading}
+            onClick={runScan}
+          >
             {loading ? "Scanning..." : "Run AI scan"}
           </button>
           {scanResult && (
             <div className="scan-result">
               <p><strong>Confidence:</strong> {Math.round(scanResult.confidence * 100)}%</p>
               <p><strong>Detected:</strong> {scanResult.amenities.join(", ")}</p>
+              <div className="ai-summary">
+                <div>
+                  <p className="small">Suggested title</p>
+                  <p>{scanResult.summary.title}</p>
+                </div>
+                <div>
+                  <p className="small">Property type</p>
+                  <p>{scanResult.summary.propertyType}</p>
+                </div>
+              </div>
               {scanResult.conflicts.length > 0 && (
                 <div className="conflict-box">
                   <h4>Conflicts to resolve</h4>
