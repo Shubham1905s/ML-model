@@ -82,6 +82,12 @@ a {
   border: 1px solid var(--line);
 }
 
+.nav-links a.primary {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 12px 24px rgba(211, 107, 45, 0.35);
+}
+
 button {
   font-family: inherit;
   border: none;
@@ -677,6 +683,64 @@ textarea {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.auth-page {
+  display: grid;
+  gap: 20px;
+}
+
+.auth-card {
+  max-width: 520px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.auth-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.auth-links {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.auth-links span {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.error {
+  color: #b02020;
+  font-weight: 600;
+}
+
+.code-block {
+  display: block;
+  background: #f7efe1;
+  border: 1px dashed var(--line);
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.muted {
+  background: #fff6e8;
+  border: 1px dashed var(--line);
+  box-shadow: none;
+}
+
+@media (max-width: 640px) {
+  .auth-links {
+    flex-direction: column;
+    gap: 8px;
+  }
 }
 
 .status-pill {

@@ -23,7 +23,7 @@ export default function HomePage() {
         api.get("/properties"),
         api.get("/reviews"),
         api.get("/bookings"),
-        api.get("/admin/stats")
+        api.get("/stats")
       ]);
 
       setProperties(propRes.data);

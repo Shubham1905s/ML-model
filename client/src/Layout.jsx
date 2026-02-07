@@ -1,6 +1,15 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "./auth/AuthProvider.jsx";
 
 export default function Layout() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/");
+  };
+
   return (
     <div className="app">
       <header className="hero hero-mini">
@@ -10,9 +19,27 @@ export default function Layout() {
           </NavLink>
           <div className="nav-links">
             <NavLink to="/">Home</NavLink>
-            <NavLink to="/host">Host Dashboard</NavLink>
-            <NavLink to="/admin">Admin</NavLink>
-            <button type="button" className="primary">Login</button>
+            {user && (user.role === "host" || user.role === "admin") && (
+              <NavLink to="/host">Host Dashboard</NavLink>
+            )}
+            {user && user.role === "admin" && <NavLink to="/admin">Admin</NavLink>}
+            {user ? (
+              <>
+                <NavLink to="/profile">Profile</NavLink>
+                <button type="button" className="ghost" onClick={handleLogout}>
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <NavLink to="/login" className="ghost-button">
+                  Login
+                </NavLink>
+                <NavLink to="/register" className="primary">
+                  Sign up
+                </NavLink>
+              </>
+            )}
           </div>
         </nav>
       </header>
