@@ -132,6 +132,52 @@ app.get("/api/host/listings", (req, res) => {
   res.json(properties);
 });
 
+app.post("/api/host/listings", (req, res) => {
+  const payload = req.body || {};
+  const title = String(payload.title || "").trim();
+  const city = String(payload.city || "").trim();
+  const pricePerNight = Number(payload.pricePerNight);
+
+  if (!title || !city || Number.isNaN(pricePerNight) || pricePerNight <= 0) {
+    return res.status(400).json({ message: "Title, city, and price are required." });
+  }
+
+  const id = `p${Date.now()}`;
+  const listing = {
+    id,
+    name: title,
+    type: payload.propertyType || "Apartment",
+    location: {
+      city,
+      state: payload.state || "",
+      country: payload.country || ""
+    },
+    description: payload.description || "",
+    amenities: Array.isArray(payload.amenities) ? payload.amenities : [],
+    pricePerNight,
+    maxGuests: Number(payload.maxGuests) || 1,
+    rating: 0,
+    hostId: "u2",
+    images: Array.isArray(payload.images) && payload.images.length > 0
+      ? payload.images
+      : [
+        `https://picsum.photos/seed/${id}-1/800/500`,
+        `https://picsum.photos/seed/${id}-2/800/500`,
+        `https://picsum.photos/seed/${id}-3/800/500`
+      ],
+    availability: {
+      checkIn: "14:00",
+      checkOut: "11:00",
+      blackoutDates: []
+    },
+    status: "Under review",
+    bookingsThisMonth: 0
+  };
+
+  properties.unshift(listing);
+  return res.status(201).json({ message: "Listing submitted", listing });
+});
+
 app.get("/api/host/bookings", (req, res) => {
   res.json(bookings);
 });

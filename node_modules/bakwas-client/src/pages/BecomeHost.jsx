@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api.js";
 
 const steps = [
@@ -23,9 +24,11 @@ const defaultForm = {
 };
 
 export default function BecomeHost() {
+  const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(0);
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const [scanResult, setScanResult] = useState(null);
   const [form, setForm] = useState(defaultForm);
   const [published, setPublished] = useState(false);
@@ -78,9 +81,23 @@ export default function BecomeHost() {
     });
   };
 
-  const handlePublish = (event) => {
+  const handlePublish = async (event) => {
     event.preventDefault();
-    setPublished(true);
+    if (publishing) return;
+    setPublishing(true);
+    try {
+      await api.post("/host/listings", {
+        ...form
+      });
+      setPublished(true);
+      setTimeout(() => {
+        navigate("/");
+      }, 700);
+    } catch (error) {
+      setPublished(false);
+    } finally {
+      setPublishing(false);
+    }
   };
 
   return (
@@ -334,7 +351,9 @@ export default function BecomeHost() {
             </label>
           </div>
           <div className="button-row">
-            <button type="submit" className="primary">Publish listing</button>
+            <button type="submit" className="primary" disabled={publishing}>
+              {publishing ? "Publishing..." : "Publish listing"}
+            </button>
           </div>
           {published && (
             <p className="success">Listing submitted! We will verify and publish it soon.</p>
