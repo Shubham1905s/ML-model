@@ -107,8 +107,9 @@ export default function BecomeHost() {
           <p className="eyebrow">Become a host</p>
           <h2>Upload photos and let the model auto-fill your listing</h2>
           <p className="subtitle">
-            This is a prototype: the AI scan is simulated and fills details for
-            you. You only need to provide price and location, then confirm.
+            This prototype simulates an AI scan that drafts a clean, modern listing
+            for you. Add pricing and location, review the suggestions, and publish
+            when it looks right.
           </p>
         </div>
       </div>
@@ -126,14 +127,14 @@ export default function BecomeHost() {
         <div>
           <h3>1. Upload property photos</h3>
           <p className="small">
-            Upload 6-12 photos of rooms, washrooms, and amenities. The AI will
-            extract details from these images.
+            Upload 6-12 well-lit photos of rooms, bathrooms, and standout amenities.
+            The AI reads the visuals and drafts the key details for you.
           </p>
           <div className="upload-box">
             <div>
               <p className="upload-title">Drop photos here or browse</p>
               <p className="small">
-                Best results with wide-angle, well-lit shots. JPG/PNG.
+                Sharp, wide-angle shots work best. JPG/PNG supported.
               </p>
             </div>
             <label className="upload-action">
@@ -171,21 +172,21 @@ export default function BecomeHost() {
             <span className={`ai-status ${scanState}`}>{scanState}</span>
           </div>
           <p className="small">
-            We scan the photos to detect rooms, amenities, and description. This is
-            a simulated flow to show how the model experience will feel.
+            We scan your photos to estimate rooms, amenities, and a polished
+            description. This flow is simulated to preview the real experience.
           </p>
           <div className="scan-steps">
             <div className={`scan-step ${scanState}`}>
               <span>01</span>
-              <p>Quality check & lighting balance</p>
+              <p>Quality check and lighting balance</p>
             </div>
             <div className={`scan-step ${scanState}`}>
               <span>02</span>
-              <p>Room layout & count detection</p>
+              <p>Room layout and count detection</p>
             </div>
             <div className={`scan-step ${scanState}`}>
               <span>03</span>
-              <p>Amenities & equipment extraction</p>
+              <p>Amenities and equipment extraction</p>
             </div>
           </div>
           <button

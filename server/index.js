@@ -440,7 +440,7 @@ app.post("/api/host/ai-scan", requireAuth, requireRole(["host", "admin"]), (req,
     summary: {
       title: "Cozy 1BHK with balcony",
       description:
-        "Bright room with queen bed, ensuite washroom, and a compact work desk. Natural light with balcony access.",
+        "A bright, modern 1BHK with a queen bed, ensuite bathroom, and a compact work desk. Floor-to-ceiling light, balcony access, and a calm palette make it feel open and easy.",
       propertyType: "Apartment",
       rooms: 1,
       washrooms: 1,

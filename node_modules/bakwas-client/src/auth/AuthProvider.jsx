@@ -60,9 +60,14 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    await api.post("/auth/logout");
-    saveToken(null);
-    setUser(null);
+    try {
+      await api.post("/auth/logout");
+    } catch (error) {
+      // Even if the server fails, clear local session so logout still works.
+    } finally {
+      saveToken(null);
+      setUser(null);
+    }
   };
 
   const forgotPassword = async (email) => {

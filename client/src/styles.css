@@ -696,6 +696,26 @@ textarea {
   width: 100%;
 }
 
+.profile-hero {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(140deg, #f7d6b4 0%, #f0b48f 100%);
+  color: #5a2a0a;
+  font-weight: 700;
+  font-size: 20px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #fff3e2;
+  box-shadow: 0 12px 24px rgba(211, 107, 45, 0.25);
+}
+
 .auth-form {
   display: grid;
   gap: 16px;

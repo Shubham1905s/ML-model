@@ -2,12 +2,17 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "./auth/AuthProvider.jsx";
 
 export default function Layout() {
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await logout();
-    navigate("/");
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      navigate("/login", { replace: true });
+    }
   };
 
   return (
@@ -25,8 +30,20 @@ export default function Layout() {
             {user && user.role === "admin" && <NavLink to="/admin">Admin</NavLink>}
             {user ? (
               <>
-                <NavLink to="/profile">Profile</NavLink>
-                <button type="button" className="ghost" onClick={handleLogout}>
+                <NavLink
+                  to="/profile"
+                  className={({ isActive }) =>
+                    `ghost-button nav-profile${isActive ? " active" : ""}`
+                  }
+                >
+                  Profile
+                </NavLink>
+                <button
+                  type="button"
+                  className="ghost"
+                  onClick={handleLogout}
+                  disabled={loading}
+                >
                   Logout
                 </button>
               </>

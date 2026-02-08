@@ -3,6 +3,14 @@ import { useAuth } from "../auth/AuthProvider.jsx";
 
 export default function Profile() {
   const { user, updateProfile, changePassword } = useAuth();
+  const displayName = user?.name || "Guest";
+  const avatarText = (displayName || user?.email || "U")
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
   const [profile, setProfile] = useState({
     name: user?.name || "",
     phone: user?.phone || ""
@@ -62,8 +70,15 @@ export default function Profile() {
   return (
     <main className="section auth-page">
       <div className="panel auth-card">
-        <h2>Your profile</h2>
-        <p className="subtitle">Manage your account details and password.</p>
+        <div className="profile-hero">
+          <div className="avatar" aria-hidden="true">
+            {avatarText}
+          </div>
+          <div>
+            <h2>Your profile</h2>
+            <p className="subtitle">Manage your account details and password.</p>
+          </div>
+        </div>
         <form className="auth-form" onSubmit={handleProfileSubmit}>
           <label>
             Full name
