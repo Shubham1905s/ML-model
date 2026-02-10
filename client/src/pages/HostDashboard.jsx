@@ -121,134 +121,202 @@ export default function HostDashboard() {
     closeDelete();
   };
 
+  const getStatusColor = (status) => {
+    if (status === "Active") return "#2c6a2f";
+    if (status === "Under review") return "#1d4f6f";
+    return "#7d3b12";
+  };
+
   return (
     <main className="section">
-      <div className="page-head">
-        <div>
-          <p className="eyebrow">Host dashboard</p>
-          <h2>Manage your properties and bookings</h2>
+      <div className="host-header">
+        <div className="host-header-content">
+          <div>
+            <p className="eyebrow">Property Management</p>
+            <h1>Welcome back, Host</h1>
+            <p className="subtitle">Manage your listings, monitor bookings, and track earnings</p>
+          </div>
+          <button type="button" className="btn-primary-large" onClick={openNewListing}>
+            + Create New Listing
+          </button>
         </div>
-        <button type="button" className="primary" onClick={openNewListing}>
-          Add new listing
-        </button>
       </div>
 
-      <div className="dashboard">
+      <div className="stats-grid">
         <StatCard
-          label="Total listings"
-          value={overview ? overview.totalListings : "--"}
-          hint="Active properties"
+          label="Active Listings"
+          value={listings.filter((l) => l.status === "Active").length}
+          hint="Properties live"
         />
         <StatCard
-          label="Upcoming bookings"
+          label="Upcoming Bookings"
           value={overview ? overview.upcomingBookings : "--"}
           hint="Next 30 days"
         />
         <StatCard
-          label="Monthly earnings"
-          value={overview ? `₹${overview.monthlyEarnings}` : "--"}
-          hint="Mock payouts"
+          label="Monthly Revenue"
+          value={overview ? `₹${(overview.monthlyEarnings || 0).toLocaleString()}` : "--"}
+          hint="Total earned"
+        />
+        <StatCard
+          label="Net Payout"
+          value={overview ? `₹${(overview.netPayout || 0).toLocaleString()}` : "--"}
+          hint="After platform fees"
         />
       </div>
 
-      <div className="tab-row">
-        {tabs.map((tab) => (
-          <button
-            type="button"
-            key={tab}
-            className={tab === activeTab ? "primary" : "ghost"}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab}
-          </button>
-        ))}
+      <div className="tabs-container">
+        <div className="tabs-header">
+          {tabs.map((tab) => (
+            <button
+              type="button"
+              key={tab}
+              className={`tab-btn ${tab === activeTab ? "active" : ""}`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === "Listings" && (
+          <div className="tab-content">
+            {listings.length === 0 ? (
+              <div className="empty-state">
+                <p className="empty-title">No listings yet</p>
+                <p className="empty-hint">Create your first listing to start hosting</p>
+                <button type="button" className="primary" onClick={openNewListing}>
+                  Create Listing
+                </button>
+              </div>
+            ) : (
+              <div className="listings-grid">
+                {listings.map((listing) => (
+                  <div className="listing-card" key={listing.id}>
+                    <div className="listing-image">
+                      <img src={listing.images[0]} alt={listing.name} />
+                      <span
+                        className="status-badge"
+                        style={{ backgroundColor: getStatusColor(listing.status) }}
+                      >
+                        {listing.status}
+                      </span>
+                    </div>
+                    <div className="listing-body">
+                      <div>
+                        <h3>{listing.name}</h3>
+                        <p className="listing-meta">
+                          {listing.type} • {listing.location.city}
+                        </p>
+                      </div>
+                      <div className="listing-footer">
+                        <p className="price">₹{listing.pricePerNight}/night</p>
+                        <p className="bookings">{listing.bookingsThisMonth} bookings</p>
+                      </div>
+                      <div className="listing-actions">
+                        <button
+                          type="button"
+                          className="btn-secondary"
+                          onClick={() => openEdit(listing)}
+                        >
+                          Edit
+                        </button>
+                        <button type="button" className="btn-secondary">
+                          Dates
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-danger"
+                          onClick={() => openDelete(listing)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "Bookings" && (
+          <div className="tab-content">
+            {bookings.length === 0 ? (
+              <div className="empty-state">
+                <p className="empty-title">No bookings yet</p>
+                <p className="empty-hint">Your bookings will appear here</p>
+              </div>
+            ) : (
+              <div className="bookings-list">
+                {bookings.map((booking) => (
+                  <div className="booking-item" key={booking.id}>
+                    <div className="booking-info">
+                      <div>
+                        <h4>{booking.guestName}</h4>
+                        <p className="booking-property">{booking.propertyName}</p>
+                        <p className="booking-dates">
+                          {booking.checkInDate} → {booking.checkOutDate}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="booking-amount">₹{booking.pricing.total.toLocaleString()}</div>
+                    <span
+                      className="status-badge"
+                      style={{
+                        backgroundColor:
+                          booking.status === "Confirmed" ? "#2c6a2f" : "#1d4f6f"
+                      }}
+                    >
+                      {booking.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "Earnings" && (
+          <div className="tab-content">
+            <div className="earnings-summary">
+              <div className="earning-card">
+                <p className="earning-label">Gross Earnings</p>
+                <p className="earning-value">₹{overview ? (overview.monthlyEarnings || 0).toLocaleString() : "--"}</p>
+                <span className="earning-period">This month</span>
+              </div>
+              <div className="earning-card">
+                <p className="earning-label">Platform Fees</p>
+                <p className="earning-value">₹{overview ? (overview.platformFees || 0).toLocaleString() : "--"}</p>
+                <span className="earning-period">Deducted</span>
+              </div>
+              <div className="earning-card highlight">
+                <p className="earning-label">Net Payout</p>
+                <p className="earning-value">₹{overview ? (overview.netPayout || 0).toLocaleString() : "--"}</p>
+                <span className="earning-period">Next: 2026-02-12</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-
-      {activeTab === "Listings" && (
-        <div className="grid">
-          {listings.map((listing) => (
-            <article className="card" key={listing.id}>
-              <img src={listing.images[0]} alt={listing.name} />
-              <div className="card-body">
-                <div>
-                  <h3>{listing.name}</h3>
-                  <p>
-                    {listing.type} · {listing.location.city}
-                  </p>
-                </div>
-                <p className="price">₹{listing.pricePerNight} / night</p>
-                <div className="meta">
-                  <span>{listing.status}</span>
-                  <span>{listing.bookingsThisMonth} bookings</span>
-                </div>
-                <div className="button-row">
-                  <button type="button" className="ghost" onClick={() => openEdit(listing)}>
-                    Edit
-                  </button>
-                  <button type="button" className="ghost">Block dates</button>
-                  <button type="button" className="ghost" onClick={() => openDelete(listing)}>
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-      )}
-
-      {activeTab === "Bookings" && (
-        <div className="panel-list">
-          {bookings.map((booking) => (
-            <div className="panel-row" key={booking.id}>
-              <div>
-                <p>{booking.guestName}</p>
-                <span>
-                  {booking.propertyName} · {booking.checkInDate} → {booking.checkOutDate}
-                </span>
-              </div>
-              <div className="status-pill">{booking.status}</div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {activeTab === "Earnings" && (
-        <div className="panel">
-          <h3>Earnings summary</h3>
-          <div className="panel-row">
-            <div>
-              <p>Gross earnings</p>
-              <span>Last 30 days</span>
-            </div>
-            <strong>₹{overview ? overview.monthlyEarnings : "--"}</strong>
-          </div>
-          <div className="panel-row">
-            <div>
-              <p>Platform fees</p>
-              <span>Estimated</span>
-            </div>
-            <strong>₹{overview ? overview.platformFees : "--"}</strong>
-          </div>
-          <div className="panel-row">
-            <div>
-              <p>Net payout</p>
-              <span>Next payout date: 2026-02-12</span>
-            </div>
-            <strong>₹{overview ? overview.netPayout : "--"}</strong>
-          </div>
-        </div>
-      )}
 
       {showModal && (
         <div className="modal-backdrop" role="presentation" onClick={closeModal}>
-          <div className="modal" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+          <div
+            className="modal"
+            role="dialog"
+            aria-modal="true"
+            onClick={(event) => event.stopPropagation()}
+          >
             <div className="modal-head">
-              <h3>{editing ? "Edit listing" : "Add new listing"}</h3>
-              <button type="button" className="ghost" onClick={closeModal}>Close</button>
+              <h3>{editing ? "Edit Listing" : "Create New Listing"}</h3>
+              <button type="button" className="btn-close" onClick={closeModal}>
+                ✕
+              </button>
             </div>
             <form className="modal-body" onSubmit={handleSave}>
               <label>
-                Property name
+                Property Name
                 <input
                   value={form.name}
                   onChange={(event) => setForm({ ...form, name: event.target.value })}
@@ -256,7 +324,7 @@ export default function HostDashboard() {
                 />
               </label>
               <label>
-                Property type
+                Property Type
                 <select
                   value={form.type}
                   onChange={(event) => setForm({ ...form, type: event.target.value })}
@@ -276,7 +344,7 @@ export default function HostDashboard() {
                 />
               </label>
               <label>
-                Price per night
+                Price per Night
                 <input
                   type="number"
                   value={form.price}
@@ -295,11 +363,14 @@ export default function HostDashboard() {
                   <option value="Paused">Paused</option>
                 </select>
               </label>
-              <div className="button-row">
-                <button type="button" className="ghost" onClick={closeModal}>Cancel</button>
-                <button type="submit" className="primary">Save</button>
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={closeModal}>
+                  Cancel
+                </button>
+                <button type="submit" className="primary">
+                  {editing ? "Update Listing" : "Create Listing"}
+                </button>
               </div>
-              <p className="small">Changes are stored locally only for this session.</p>
             </form>
           </div>
         </div>
@@ -307,20 +378,29 @@ export default function HostDashboard() {
 
       {deleteModal && (
         <div className="modal-backdrop" role="presentation" onClick={closeDelete}>
-          <div className="modal" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+          <div
+            className="modal confirm-modal"
+            role="dialog"
+            aria-modal="true"
+            onClick={(event) => event.stopPropagation()}
+          >
             <div className="modal-head">
-              <h3>Delete listing</h3>
-              <button type="button" className="ghost" onClick={closeDelete}>Close</button>
+              <h3>Delete Listing</h3>
+              <button type="button" className="btn-close" onClick={closeDelete}>
+                ✕
+              </button>
             </div>
             <div className="modal-body">
               <p>
-                You are about to delete {deleteModal.name}. This is a dummy action
-                and only updates local state.
+                Are you sure you want to delete <strong>{deleteModal.name}</strong>? This
+                action cannot be undone.
               </p>
-              <div className="button-row">
-                <button type="button" className="ghost" onClick={closeDelete}>Cancel</button>
-                <button type="button" className="primary" onClick={confirmDelete}>
-                  Confirm delete
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={closeDelete}>
+                  Cancel
+                </button>
+                <button type="button" className="btn-danger-primary" onClick={confirmDelete}>
+                  Delete Listing
                 </button>
               </div>
             </div>
