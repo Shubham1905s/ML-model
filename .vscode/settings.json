@@ -1,0 +1,5 @@
+{
+    "zenMode.hideActivityBar": false,
+    "zenMode.hideStatusBar": false,
+    "diffEditor.hideUnchangedRegions.enabled": true
+}

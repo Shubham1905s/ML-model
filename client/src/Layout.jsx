@@ -1,9 +1,21 @@
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "./auth/AuthProvider.jsx";
 
 export default function Layout() {
   const { user, logout, loading } = useAuth();
   const navigate = useNavigate();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 12);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -17,7 +29,7 @@ export default function Layout() {
 
   return (
     <div className="app">
-      <header className="hero hero-mini">
+      <header className={`site-header${isScrolled ? " scrolled" : ""}`}>
         <nav className="nav">
           <NavLink to="/" className="logo">
             StayEase

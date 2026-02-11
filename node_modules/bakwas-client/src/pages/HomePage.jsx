@@ -9,27 +9,40 @@ const filters = [
   "Most Popular"
 ];
 
+const formatNumber = (value) => Number(value || 0).toLocaleString("en-IN");
+
+const formatCurrency = (value) => `INR ${formatNumber(value)}`;
+
+const formatRating = (value) => `${Number(value || 0).toFixed(1)} / 5`;
+
+const formatDate = (value) => {
+  if (!value) return "";
+  const date = new Date(`${value}T00:00:00`);
+  return date.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  });
+};
+
 export default function HomePage() {
   const [properties, setProperties] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [bookings, setBookings] = useState([]);
-  const [stats, setStats] = useState(null);
   const [search, setSearch] = useState({ location: "", guests: 2, type: "" });
   const [searchResults, setSearchResults] = useState(null);
 
   useEffect(() => {
     const loadData = async () => {
-      const [propRes, reviewRes, bookingRes, statsRes] = await Promise.all([
+      const [propRes, reviewRes, bookingRes] = await Promise.all([
         api.get("/properties"),
         api.get("/reviews"),
-        api.get("/bookings"),
-        api.get("/stats")
+        api.get("/bookings")
       ]);
 
       setProperties(propRes.data);
       setReviews(reviewRes.data);
       setBookings(bookingRes.data);
-      setStats(statsRes.data);
     };
 
     loadData().catch(() => {
@@ -43,16 +56,30 @@ export default function HomePage() {
     setSearchResults(response.data);
   };
 
+  const destinationSummary = properties.reduce((acc, property) => {
+    const city = property.location?.city || "Unknown";
+    if (!acc[city]) {
+      acc[city] = { city, listings: 0, topPrice: 0 };
+    }
+    acc[city].listings += 1;
+    acc[city].topPrice = Math.max(acc[city].topPrice, Number(property.pricePerNight) || 0);
+    return acc;
+  }, {});
+
+  const topDestinations = Object.values(destinationSummary)
+    .sort((a, b) => b.listings - a.listings || b.topPrice - a.topPrice)
+    .slice(0, 3);
+
   return (
     <>
       <section className="hero">
         <div className="hero-content">
           <div>
-            <p className="eyebrow">Dummy MERN build</p>
-            <h1>Book stays that feel like home ? instantly.</h1>
+            <p className="eyebrow">Trusted stays across India</p>
+            <h1>Book stays that feel like home, instantly.</h1>
             <p className="subtitle">
-              This is a fully mocked interface using dummy APIs. Every action is
-              simulated and does not create real bookings or payments.
+              Find verified homes, villas, and hotels in top destinations with
+              transparent pricing and guest-first support.
             </p>
             <div className="hero-actions">
               <button type="button" className="primary">Explore stays</button>
@@ -60,16 +87,20 @@ export default function HomePage() {
             </div>
           </div>
           <div className="hero-card">
-            <h3>Quick stats</h3>
-            {stats ? (
+            <h3>Popular destinations</h3>
+            {topDestinations.length > 0 ? (
               <ul>
-                <li><span>Active users</span>{stats.activeUsers}</li>
-                <li><span>Bookings this month</span>{stats.bookingsThisMonth}</li>
-                <li><span>Revenue (mock)</span>{stats.revenueThisMonth}</li>
-                <li><span>Avg rating</span>{stats.averageRating}</li>
+                {topDestinations.map((destination) => (
+                  <li key={destination.city}>
+                    <span>{destination.city}</span>
+                    <strong>
+                      {destination.listings} stays from {formatCurrency(destination.topPrice)}/night
+                    </strong>
+                  </li>
+                ))}
               </ul>
             ) : (
-              <p>Loading stats...</p>
+              <p>Loading destinations...</p>
             )}
           </div>
         </div>
@@ -78,7 +109,7 @@ export default function HomePage() {
       <section className="search-panel">
         <div>
           <h2>Search stays</h2>
-          <p>Search is mocked but filters and sorting are wired to dummy data.</p>
+          <p>Filter by location, guests, and property type to find the right stay.</p>
         </div>
         <form onSubmit={handleSearch} className="search-form">
           <label>
@@ -122,7 +153,7 @@ export default function HomePage() {
         {searchResults && (
           <div className="search-results">
             <p>
-              Found {searchResults.results.length} mock matches for{" "}
+              Found {formatNumber(searchResults.results.length)} stays for{" "}
               {searchResults.criteria.location || "all locations"}
             </p>
           </div>
@@ -146,15 +177,15 @@ export default function HomePage() {
                 <div>
                   <h3>{property.name}</h3>
                   <p>
-                    {property.type} ? {property.location.city}
+                    {property.type} in {property.location.city}
                   </p>
                 </div>
                 <p className="price">
-                  ?{property.pricePerNight} / night
+                  {formatCurrency(property.pricePerNight)} / night
                 </p>
                 <div className="meta">
-                  <span>{property.rating} ?</span>
-                  <span>{property.maxGuests} guests</span>
+                  <span>{formatRating(property.rating)}</span>
+                  <span>Up to {property.maxGuests} guests</span>
                 </div>
                 <button type="button" className="ghost">View details</button>
               </div>
@@ -166,15 +197,15 @@ export default function HomePage() {
       <section className="section alt">
         <div className="detail-layout">
           <div>
-            <h2>Room details (mock)</h2>
+            <h2>Room details</h2>
             <p>
-              Every room has an image gallery, full description, amenities, map,
-              and availability calendar. This card simulates the details page.
+              Each listing includes a full gallery, detailed amenities, nearby
+              map view, and an up-to-date availability calendar.
             </p>
             <div className="detail-grid">
               <div className="detail-box">
                 <h4>Check-in / out</h4>
-                <p>2:00 PM ? 11:00 AM</p>
+                <p>2:00 PM to 11:00 AM</p>
               </div>
               <div className="detail-box">
                 <h4>Amenities</h4>
@@ -182,7 +213,7 @@ export default function HomePage() {
               </div>
               <div className="detail-box">
                 <h4>Map</h4>
-                <p>Google Maps embed placeholder</p>
+                <p>Property location and neighborhood highlights</p>
               </div>
             </div>
           </div>
@@ -205,29 +236,29 @@ export default function HomePage() {
             <div className="price-breakdown">
               <div>
                 <span>Base price</span>
-                <span>?10,497</span>
+                <span>{formatCurrency(10497)}</span>
               </div>
               <div>
                 <span>Taxes</span>
-                <span>?1,260</span>
+                <span>{formatCurrency(1260)}</span>
               </div>
               <div>
                 <span>Platform fee</span>
-                <span>?420</span>
+                <span>{formatCurrency(150)}</span>
               </div>
               <div className="total">
                 <span>Total</span>
-                <span>?12,177</span>
+                <span>{formatCurrency(11907)}</span>
               </div>
             </div>
             <button type="button" className="primary">Confirm booking</button>
-            <p className="small">Payment is mocked. No real transaction occurs.</p>
+            <p className="small">You will be charged only after booking confirmation.</p>
           </div>
         </div>
       </section>
 
       <section className="section">
-        <h2>Guest dashboard (dummy)</h2>
+        <h2>Guest dashboard</h2>
         <div className="dashboard">
           <div className="panel">
             <h3>Bookings</h3>
@@ -236,10 +267,10 @@ export default function HomePage() {
                 <div>
                   <p>{booking.status}</p>
                   <span>
-                    {booking.checkInDate} ? {booking.checkOutDate}
+                    {formatDate(booking.checkInDate)} to {formatDate(booking.checkOutDate)}
                   </span>
                 </div>
-                <strong>?{booking.pricing.total}</strong>
+                <strong>{formatCurrency(booking.pricing.total)}</strong>
               </div>
             ))}
           </div>
@@ -249,9 +280,9 @@ export default function HomePage() {
               <div className="panel-row" key={review.id}>
                 <div>
                   <p>{review.text}</p>
-                  <span>{review.createdAt}</span>
+                  <span>{formatDate(review.createdAt)}</span>
                 </div>
-                <strong>{review.rating}?</strong>
+                <strong>{formatRating(review.rating)}</strong>
               </div>
             ))}
           </div>
@@ -259,10 +290,10 @@ export default function HomePage() {
             <h3>Host earnings</h3>
             <div className="panel-row">
               <div>
-                <p>Total earnings (mock)</p>
+                <p>Total earnings</p>
                 <span>Updated daily</span>
               </div>
-              <strong>?2,84,530</strong>
+              <strong>{formatCurrency(284530)}</strong>
             </div>
             <button type="button" className="ghost">View host dashboard</button>
           </div>
