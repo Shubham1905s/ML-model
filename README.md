@@ -1,4 +1,4 @@
-# Bakwas ? Dummy MERN Room Booking
+#  MERN Room Booking
 
 This is a MERN-style room booking project built as a **fully mocked demo**. All data is in-memory and every flow is simulated (auth, booking, payments, reviews, admin stats).
 
