@@ -3,9 +3,6 @@ import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 import {
   users,
   amenities,
@@ -35,9 +32,6 @@ const app = express();
 dotenv.config();
 const PORT = process.env.PORT || 5000;
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:5173";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const CLIENT_DIST_DIR = path.resolve(__dirname, "../client/dist");
 const COOKIE_OPTIONS = {
   httpOnly: true,
   sameSite: "lax",
@@ -483,16 +477,6 @@ app.get("/api/admin/users", requireAuth, requireRole(["admin"]), async (req, res
   }
   return res.json(dbUsers.map((user) => user.toPublic()));
 });
-
-if (fs.existsSync(CLIENT_DIST_DIR)) {
-  app.use(express.static(CLIENT_DIST_DIR));
-  app.get("*", (req, res, next) => {
-    if (req.path.startsWith("/api")) {
-      return next();
-    }
-    return res.sendFile(path.join(CLIENT_DIST_DIR, "index.html"));
-  });
-}
 
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });

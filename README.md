@@ -1,12 +1,16 @@
-<<<<<<< HEAD
-#  MERN Room Booking
-=======
 # Bakwas
->>>>>>> c719ce9 (bug number 1)
 
-MERN-style room booking app with:
+MERN-style booking app with:
 - React + Vite client (`client`)
 - Express + MongoDB server (`server`)
+
+Implemented flows:
+- OTP-based account creation (email OTP)
+- Login with 6-character mixed CAPTCHA
+- Role-based access (`host`, `guest`, `admin`)
+- Host listing publish with CAPTCHA + terms acceptance
+- Guest booking with CAPTCHA + terms acceptance
+- Booking payment options: Onsite Payment, Net Banking, UPI
 
 ## Local setup
 
@@ -16,7 +20,7 @@ npm run dev:server
 npm run dev:client
 ```
 
-App runs at `http://localhost:5173` and proxies API calls to `http://localhost:5000`.
+Client runs at `http://localhost:5173` and proxies API calls to `http://localhost:5000`.
 
 ## Production build
 
@@ -25,42 +29,43 @@ npm run build
 npm start
 ```
 
-`npm run build` builds the React app into `client/dist`.  
-`npm start` runs the Express server, which also serves `client/dist` (single-service deploy).
+`npm run build` creates `client/dist`.  
+`npm start` runs Express and serves both API + frontend.
 
-## Required environment variables
+## Environment variables
 
-Create a `.env` (or use your host dashboard env settings) with:
+Create `.env` using `.env.example`:
 
-- `MONGODB_URI` (required in production)
-- `MONGODB_DB` (optional, default: `stayease`)
-- `ACCESS_TOKEN_SECRET` (required)
-- `REFRESH_TOKEN_SECRET` (required)
-- `ACCESS_TOKEN_EXPIRES` (optional, default used by app)
-- `REFRESH_TOKEN_EXPIRES` (optional, default used by app)
-- `CLIENT_ORIGIN` (optional, use frontend URL if deploying frontend separately)
-- `ADMIN_EMAIL` (optional, seeds admin user)
-- `ADMIN_PASSWORD` (optional, seeds admin user)
+- `MONGODB_URI`
+- `MONGODB_DB` (optional)
+- `ACCESS_TOKEN_SECRET`
+- `REFRESH_TOKEN_SECRET`
+- `ACCESS_TOKEN_EXPIRES` (optional)
+- `REFRESH_TOKEN_EXPIRES` (optional)
+- `CLIENT_ORIGIN` (optional for split deployment)
+- `ADMIN_EMAIL` (optional)
+- `ADMIN_PASSWORD` (optional)
+- `ADMIN_PHONE` (optional)
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` (for sending OTP emails)
 - `NODE_ENV=production`
 
-See `.env.example` for a template.
+If SMTP vars are missing, OTP is logged on server console in non-production mode.
 
-## Deploy on Render (single Web Service)
+## Deploy on Render (single web service)
 
-1. Push this repo to GitHub/GitLab.
-2. In Render, click **New +** -> **Web Service**.
-3. Connect your repo and choose the branch.
-4. Use these settings:
-   - Runtime: `Node`
+1. Push repo to GitHub/GitLab.
+2. In Render: `New +` -> `Web Service`.
+3. Connect repo and branch.
+4. Set:
    - Build Command: `npm install && npm run build`
    - Start Command: `npm start`
-5. Add environment variables from the list above.
+5. Add environment variables from above.
 6. Deploy.
 
-After deploy:
-- Health check: `https://<your-render-service>.onrender.com/api/health`
-- App: `https://<your-render-service>.onrender.com`
+Verify:
+- `https://<your-service>.onrender.com/api/health`
+- `https://<your-service>.onrender.com`
 
-## Optional: Blueprint deploy
+## Blueprint deploy
 
-This repo includes `render.yaml`. You can use **New + -> Blueprint** in Render and select this repo.
+This repo includes `render.yaml`, so you can also deploy via Render Blueprint.

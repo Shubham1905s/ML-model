@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api.js";
+import CaptchaField from "../components/CaptchaField.jsx";
 
 const steps = [
   "Upload photos",
@@ -32,6 +33,10 @@ export default function BecomeHost() {
   const [scanResult, setScanResult] = useState(null);
   const [form, setForm] = useState(defaultForm);
   const [published, setPublished] = useState(false);
+  const [previewUrls, setPreviewUrls] = useState([]);
+  const [captcha, setCaptcha] = useState({ captchaId: "", text: "" });
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [publishError, setPublishError] = useState("");
   const scanState = loading
     ? "running"
     : scanResult
@@ -44,6 +49,19 @@ export default function BecomeHost() {
     const files = Array.from(event.target.files || []);
     if (files.length === 0) return;
     setPhotos(files);
+    Promise.all(
+      files.map(
+        (file) =>
+          new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          })
+      )
+    )
+      .then((urls) => setPreviewUrls(urls))
+      .catch(() => setPreviewUrls([]));
     setActiveStep(1);
   };
 
@@ -84,10 +102,19 @@ export default function BecomeHost() {
   const handlePublish = async (event) => {
     event.preventDefault();
     if (publishing) return;
+    setPublishError("");
+    if (!termsAccepted) {
+      setPublishError("Please accept terms and conditions.");
+      return;
+    }
     setPublishing(true);
     try {
       await api.post("/host/listings", {
-        ...form
+        ...form,
+        images: previewUrls,
+        termsAccepted,
+        captchaId: captcha.captchaId,
+        captchaText: captcha.text
       });
       setPublished(true);
       setTimeout(() => {
@@ -95,6 +122,7 @@ export default function BecomeHost() {
       }, 700);
     } catch (error) {
       setPublished(false);
+      setPublishError(error.response?.data?.message || "Publishing failed.");
     } finally {
       setPublishing(false);
     }
@@ -153,9 +181,13 @@ export default function BecomeHost() {
           </div>
           {photos.length > 0 && (
             <div className="photo-grid">
-              {photos.map((photo) => (
-                <div key={photo.name} className="photo-card">
-                  <div className="photo-placeholder">{photo.name}</div>
+              {photos.map((photo, index) => (
+                <div key={`${photo.name}-${index}`} className="photo-card">
+                  {previewUrls[index] ? (
+                    <img src={previewUrls[index]} alt={photo.name} className="upload-preview" />
+                  ) : (
+                    <div className="photo-placeholder">{photo.name}</div>
+                  )}
                   <p className="photo-size">{Math.round(photo.size / 1024)} kb</p>
                 </div>
               ))}
@@ -352,10 +384,27 @@ export default function BecomeHost() {
             </label>
           </div>
           <div className="button-row">
+            <label className="checkbox-row">
+              <input
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={(event) => setTermsAccepted(event.target.checked)}
+              />
+              I agree to the Terms and Conditions
+            </label>
+          </div>
+          <CaptchaField
+            purpose="listing"
+            value={captcha}
+            onChange={setCaptcha}
+            disabled={publishing}
+          />
+          <div className="button-row">
             <button type="submit" className="primary" disabled={publishing}>
               {publishing ? "Publishing..." : "Publish listing"}
             </button>
           </div>
+          {publishError && <p className="error">{publishError}</p>}
           {published && (
             <p className="success">Listing submitted! We will verify and publish it soon.</p>
           )}

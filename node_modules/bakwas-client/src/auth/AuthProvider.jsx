@@ -40,13 +40,20 @@ export function AuthProvider({ children }) {
     loadSession();
   }, [loadSession]);
 
-  const register = async (payload) => {
-    const response = await api.post("/auth/register", {
+  const requestRegisterOtp = async (payload) => {
+    const response = await api.post("/auth/register/request-otp", {
       name: payload.name,
       email: payload.email,
+      phone: payload.phone,
       password: payload.password,
-      role: payload.role
+      role: payload.role,
+      termsAccepted: payload.termsAccepted
     });
+    return response.data;
+  };
+
+  const verifyRegisterOtp = async ({ email, otp }) => {
+    const response = await api.post("/auth/register/verify-otp", { email, otp });
     saveToken(response.data.accessToken);
     setUser(response.data.user);
     return response.data;
@@ -96,7 +103,8 @@ export function AuthProvider({ children }) {
       value={{
         user,
         loading,
-        register,
+        requestRegisterOtp,
+        verifyRegisterOtp,
         login,
         logout,
         forgotPassword,

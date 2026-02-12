@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider.jsx";
+import CaptchaField from "../components/CaptchaField.jsx";
 
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [form, setForm] = useState({ email: "", password: "" });
+  const [captcha, setCaptcha] = useState({ captchaId: "", text: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -15,7 +17,11 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      await login(form);
+      await login({
+        ...form,
+        captchaId: captcha.captchaId,
+        captchaText: captcha.text
+      });
       const next = location.state?.from || "/";
       navigate(next, { replace: true });
     } catch (err) {
@@ -49,6 +55,12 @@ export default function Login() {
               required
             />
           </label>
+          <CaptchaField
+            purpose="login"
+            value={captcha}
+            onChange={setCaptcha}
+            disabled={loading}
+          />
           {error && <p className="error">{error}</p>}
           <button type="submit" className="primary" disabled={loading}>
             {loading ? "Signing in..." : "Login"}
