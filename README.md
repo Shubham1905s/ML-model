@@ -34,7 +34,7 @@ npm start
 
 ## Environment variables
 
-Create `.env` using `.env.example`:
+Create `server/.env` using `.env.example` values:
 
 - `MONGODB_URI`
 - `MONGODB_DB` (optional)
@@ -47,7 +47,7 @@ Create `.env` using `.env.example`:
 - `ADMIN_PASSWORD` (optional)
 - `ADMIN_PHONE` (optional)
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` (for sending OTP emails)
-- `NODE_ENV=production`
+- `NODE_ENV=development` for local, `production` for deployed env
 
 If SMTP vars are missing, OTP is logged on server console in non-production mode.
 

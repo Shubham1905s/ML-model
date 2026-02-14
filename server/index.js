@@ -3,6 +3,9 @@ import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
+import crypto from "crypto";
+import path from "path";
+import { fileURLToPath } from "url";
 import {
   users,
   amenities,
@@ -17,6 +20,7 @@ import {
 } from "./data.js";
 import { connectDatabase } from "./db.js";
 import User from "./models/User.js";
+import PendingSignup from "./models/PendingSignup.js";
 import {
   generateResetToken,
   hashPassword,
@@ -28,9 +32,13 @@ import {
 } from "./utils/auth.js";
 import { requireAuth, requireRole } from "./middleware/auth.js";
 import { issueCaptcha, verifyCaptcha } from "./utils/captcha.js";
+import { sendOtpEmail } from "./utils/mailer.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, ".env") });
 const PORT = process.env.PORT || 5000;
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:5173";
 const COOKIE_OPTIONS = {
@@ -76,6 +84,115 @@ app.get("/api/health", (req, res) => {
 app.get("/api/captcha", (req, res) => {
   const purpose = String(req.query?.purpose || "general");
   return res.json(issueCaptcha(purpose));
+});
+
+app.post("/api/auth/register/request-otp", async (req, res) => {
+  try {
+    const { name, email, phone, password, role, termsAccepted } = req.body || {};
+    if (!name || !email || !phone || !password) {
+      return res
+        .status(400)
+        .json({ message: "Name, email, phone, and password are required." });
+    }
+    if (!termsAccepted) {
+      return res.status(400).json({ message: "Please accept terms and conditions." });
+    }
+    if (String(password).length < 8) {
+      return res.status(400).json({ message: "Password must be at least 8 characters." });
+    }
+
+    const normalizedEmail = String(email).toLowerCase();
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
+    if (!emailOk) {
+      return res.status(400).json({ message: "Enter a valid email." });
+    }
+
+    const existing = await User.findOne({ email: normalizedEmail });
+    if (existing) {
+      return res.status(409).json({ message: "Email already registered." });
+    }
+
+    const otp = String(crypto.randomInt(100000, 1000000));
+    const passwordHash = await hashPassword(password);
+    await PendingSignup.findOneAndUpdate(
+      { email: normalizedEmail },
+      {
+        name: String(name).trim(),
+        email: normalizedEmail,
+        phone: String(phone).trim(),
+        passwordHash,
+        role: role === "host" ? "host" : "guest",
+        otpHash: hashToken(otp),
+        otpExpiresAt: new Date(Date.now() + 10 * 60 * 1000),
+        otpVerified: false,
+        termsAccepted: Boolean(termsAccepted)
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    const mailResult = await sendOtpEmail({ to: normalizedEmail, otp });
+    const shouldShowPreview = !mailResult?.delivered && process.env.NODE_ENV !== "production";
+
+    return res.json({
+      message: mailResult?.delivered
+        ? "OTP sent to your email."
+        : "Email delivery unavailable. Using dev OTP preview.",
+      otpPreview: shouldShowPreview ? otp : undefined
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Could not send OTP." });
+  }
+});
+
+app.post("/api/auth/register/verify-otp", async (req, res) => {
+  try {
+    const { email, otp } = req.body || {};
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email and OTP are required." });
+    }
+
+    const normalizedEmail = String(email).toLowerCase();
+    const pending = await PendingSignup.findOne({ email: normalizedEmail });
+    if (!pending) {
+      return res.status(400).json({ message: "No pending signup found." });
+    }
+    if (pending.otpExpiresAt <= new Date()) {
+      await PendingSignup.deleteOne({ _id: pending._id });
+      return res.status(400).json({ message: "OTP expired. Request a new OTP." });
+    }
+    if (pending.otpHash !== hashToken(String(otp))) {
+      return res.status(400).json({ message: "Invalid OTP." });
+    }
+
+    const existing = await User.findOne({ email: normalizedEmail });
+    if (existing) {
+      await PendingSignup.deleteOne({ _id: pending._id });
+      return res.status(409).json({ message: "Email already registered." });
+    }
+
+    const user = await User.create({
+      name: pending.name,
+      email: pending.email,
+      phone: pending.phone,
+      passwordHash: pending.passwordHash,
+      role: pending.role
+    });
+    await PendingSignup.deleteOne({ _id: pending._id });
+
+    const accessToken = signAccessToken(user);
+    const refreshToken = signRefreshToken(user);
+    user.refreshTokenHash = hashToken(refreshToken);
+    await user.save();
+
+    res.cookie("refreshToken", refreshToken, { ...COOKIE_OPTIONS, maxAge: 7 * 24 * 60 * 60 * 1000 });
+    return res.status(201).json({
+      message: "Registration successful",
+      accessToken,
+      user: user.toPublic()
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Registration failed." });
+  }
 });
 
 app.post("/api/auth/register", async (req, res) => {
