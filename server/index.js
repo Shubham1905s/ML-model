@@ -27,6 +27,7 @@ import {
   verifyRefreshToken
 } from "./utils/auth.js";
 import { requireAuth, requireRole } from "./middleware/auth.js";
+import { issueCaptcha, verifyCaptcha } from "./utils/captcha.js";
 
 const app = express();
 dotenv.config();
@@ -70,6 +71,11 @@ connectDatabase()
 
 app.get("/api/health", (req, res) => {
   res.json({ ok: true, service: "bakwas-server", time: new Date().toISOString() });
+});
+
+app.get("/api/captcha", (req, res) => {
+  const purpose = String(req.query?.purpose || "general");
+  return res.json(issueCaptcha(purpose));
 });
 
 app.post("/api/auth/register", async (req, res) => {
@@ -119,9 +125,16 @@ app.post("/api/auth/register", async (req, res) => {
 
 app.post("/api/auth/login", async (req, res) => {
   try {
-    const { email, password } = req.body || {};
+    const { email, password, captchaId, captchaText } = req.body || {};
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password are required." });
+    }
+    if (!captchaId || !captchaText) {
+      return res.status(400).json({ message: "CAPTCHA is required." });
+    }
+    const captchaOk = verifyCaptcha({ captchaId, captchaText, purpose: "login" });
+    if (!captchaOk) {
+      return res.status(400).json({ message: "Invalid or expired CAPTCHA." });
     }
 
     const user = await User.findOne({ email: String(email).toLowerCase() });
@@ -341,6 +354,15 @@ app.get("/api/bookings", (req, res) => {
 });
 
 app.post("/api/bookings", (req, res) => {
+  const { captchaId, captchaText } = req.body || {};
+  if (!captchaId || !captchaText) {
+    return res.status(400).json({ message: "CAPTCHA is required." });
+  }
+  const captchaOk = verifyCaptcha({ captchaId, captchaText, purpose: "booking" });
+  if (!captchaOk) {
+    return res.status(400).json({ message: "Invalid or expired CAPTCHA." });
+  }
+
   res.json({
     message: "Dummy booking created",
     booking: bookings[0]
@@ -387,6 +409,14 @@ app.get("/api/host/listings", requireAuth, requireRole(["host", "admin"]), (req,
 
 app.post("/api/host/listings", requireAuth, requireRole(["host", "admin"]), (req, res) => {
   const payload = req.body || {};
+  const captchaOk = verifyCaptcha({
+    captchaId: payload.captchaId,
+    captchaText: payload.captchaText,
+    purpose: "listing"
+  });
+  if (!captchaOk) {
+    return res.status(400).json({ message: "Invalid or expired CAPTCHA." });
+  }
   const title = String(payload.title || "").trim();
   const city = String(payload.city || "").trim();
   const pricePerNight = Number(payload.pricePerNight);
