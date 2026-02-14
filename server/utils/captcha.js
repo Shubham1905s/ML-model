@@ -80,6 +80,7 @@ export function issueCaptcha(purpose = "general") {
   };
 }
 
+
 export function verifyCaptcha({ captchaId, captchaText, purpose = "general" }) {
   cleanupExpiredCaptchas();
   const found = captchaStore.get(captchaId);
