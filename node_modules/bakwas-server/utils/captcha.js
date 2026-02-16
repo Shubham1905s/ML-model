@@ -79,7 +79,7 @@ export function issueCaptcha(purpose = "general") {
     expiresInSeconds: Math.floor(CAPTCHA_TTL_MS / 1000)
   };
 }
-
+ 
  
 export function verifyCaptcha({ captchaId, captchaText, purpose = "general" }) {
   cleanupExpiredCaptchas();

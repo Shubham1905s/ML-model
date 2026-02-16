@@ -20,7 +20,7 @@ const bookingSchema = new mongoose.Schema(
       type: String,
       enum: ["Onsite Payment", "Net Banking", "UPI"],
       required: true
-    },
+    }, 
     termsAccepted: { type: Boolean, required: true }
   },
   { timestamps: true }
