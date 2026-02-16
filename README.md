@@ -30,11 +30,11 @@ npm start
 ```
 
 `npm run build` creates `client/dist`.  
-`npm start` runs Express and serves both API + frontend.
+`npm start` runs local Express API on `http://localhost:5000`.
 
 ## Environment variables
 
-Create `server/.env` using `.env.example` values:
+Create `.env` in repo root using `.env.example` values:
 
 - `MONGODB_URI`
 - `MONGODB_DB` (optional)
@@ -42,30 +42,26 @@ Create `server/.env` using `.env.example` values:
 - `REFRESH_TOKEN_SECRET`
 - `ACCESS_TOKEN_EXPIRES` (optional)
 - `REFRESH_TOKEN_EXPIRES` (optional)
-- `CLIENT_ORIGIN` (optional for split deployment)
+- `CLIENT_ORIGINS` (comma-separated allowed origins, optional)
+- `COOKIE_SAME_SITE` (`lax` for same-origin, `none` for split domains)
+- `COOKIE_SECURE` (`true` in production when `sameSite=none`)
 - `ADMIN_EMAIL` (optional)
 - `ADMIN_PASSWORD` (optional)
 - `ADMIN_PHONE` (optional)
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` (for sending OTP emails)
+- `VITE_API_BASE_URL` (`/api` when frontend and backend are same domain)
 - `NODE_ENV=development` for local, `production` for deployed env
 
 If SMTP vars are missing, OTP is logged on server console in non-production mode.
 
-## Deploy on Render (single web service)
+## Deploy on Vercel
 
-1. Push repo to GitHub/GitLab.
-2. In Render: `New +` -> `Web Service`.
-3. Connect repo and branch.
-4. Set:
-   - Build Command: `npm install && npm run build`
-   - Start Command: `npm start`
-5. Add environment variables from above.
-6. Deploy.
+1. Push this repo to GitHub.
+2. Import project in Vercel.
+3. Keep root as project directory (uses `vercel.json`).
+4. Add environment variables from `.env.example`.
+5. Deploy.
 
 Verify:
-- `https://<your-service>.onrender.com/api/health`
-- `https://<your-service>.onrender.com`
-
-## Blueprint deploy
-
-This repo includes `render.yaml`, so you can also deploy via Render Blueprint.
+- `https://<your-project>.vercel.app/api/health`
+- `https://<your-project>.vercel.app`
