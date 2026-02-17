@@ -553,7 +553,7 @@ app.get("/api/host/listings", requireAuth, requireRole(["host", "admin"]), (req,
   return res.json(ownListings);
 });
 
-app.post("/api/host/listings", requireAuth, requireRole(["host", "admin"]), (req, res) => {
+app.post("/api/host/listings", requireAuth, requireRole(["guest", "host", "admin"]), (req, res) => {
   const payload = req.body || {};
   const captchaOk = verifyCaptcha({
     captchaId: payload.captchaId,
@@ -620,7 +620,7 @@ app.get("/api/host/bookings", requireAuth, requireRole(["host", "admin"]), (req,
   return res.json(ownBookings);
 });
 
-app.post("/api/host/ai-scan", requireAuth, requireRole(["host", "admin"]), (req, res) => {
+app.post("/api/host/ai-scan", requireAuth, requireRole(["guest", "host", "admin"]), (req, res) => {
   res.json({
     summary: {
       title: "Cozy 1BHK with balcony",

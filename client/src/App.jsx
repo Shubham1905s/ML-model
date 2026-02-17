@@ -35,7 +35,7 @@ export default function App() {
         <Route
           path="become-host"
           element={
-            <ProtectedRoute roles={["host", "admin"]}>
+            <ProtectedRoute>
               <BecomeHost />
             </ProtectedRoute>
           }

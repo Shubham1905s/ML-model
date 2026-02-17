@@ -160,7 +160,6 @@ export default function HomePage() {
             <p className="subtitle">{t("home.hero.subtitle")}</p>
             <div className="hero-actions">
               <button type="button" className="primary">{t("home.hero.exploreStays")}</button>
-              <Link to="/become-host" className="ghost-button">{t("home.hero.becomeHost")}</Link>
             </div>
           </div>
           <div className="hero-card">
