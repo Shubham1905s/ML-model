@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "./auth/AuthProvider.jsx";
+import { useTheme } from "./ThemeProvider.jsx";
 
 export default function Layout() {
   const { user, logout, loading } = useAuth();
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -35,6 +37,14 @@ export default function Layout() {
             StayEase
           </NavLink>
           <div className="nav-links">
+            <button
+              type="button"
+              className="theme-toggle"
+              onClick={toggleTheme}
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {theme === "dark" ? "☀" : "☾"}
+            </button>
             <NavLink to="/">Home</NavLink>
             {user && (user.role === "host" || user.role === "admin") && (
               <NavLink to="/host">Host Dashboard</NavLink>
