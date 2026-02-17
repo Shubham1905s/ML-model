@@ -197,6 +197,58 @@ a {
   gap: 10px;
   flex-wrap: wrap;
   align-items: center;
+  margin-left: auto;
+}
+
+.nav-menu-wrapper {
+  position: relative;
+  margin-left: 10px;
+}
+
+.hamburger-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 9px;
+}
+
+.hamburger-button span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: var(--ink);
+  border-radius: 999px;
+}
+
+.hamburger-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  min-width: 210px;
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  z-index: 60;
+}
+
+.hamburger-menu a,
+.hamburger-menu button,
+.hamburger-menu .language-selector {
+  width: 100%;
+}
+
+.menu-item {
+  text-align: left;
 }
 
 .nav-links a {
@@ -1502,9 +1554,13 @@ textarea {
   }
 
   .nav {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
+    gap: 10px;
+  }
+
+  .nav-links {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
   }
 
   .search-panel {

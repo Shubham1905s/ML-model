@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "./auth/AuthProvider.jsx";
 import { useTheme } from "./ThemeProvider.jsx";
@@ -9,7 +9,9 @@ export default function Layout() {
   const { t } = useTranslation();
   const { user, logout, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
@@ -21,6 +23,10 @@ export default function Layout() {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
 
   const handleLogout = async () => {
     try {
@@ -40,40 +46,12 @@ export default function Layout() {
             StayEase
           </NavLink>
           <div className="nav-links">
-            <LanguageSelector />
-            <button
-              type="button"
-              className="theme-toggle"
-              onClick={toggleTheme}
-              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {theme === "dark" ? "☀" : "☾"}
-            </button>
             <NavLink to="/">{t("nav.home")}</NavLink>
             {user && (user.role === "host" || user.role === "admin") && (
               <NavLink to="/host">{t("nav.hostDashboard")}</NavLink>
             )}
             {user && user.role === "admin" && <NavLink to="/admin">{t("nav.admin")}</NavLink>}
-            {user ? (
-              <>
-                <NavLink
-                  to="/profile"
-                  className={({ isActive }) =>
-                    `ghost-button nav-profile${isActive ? " active" : ""}`
-                  }
-                >
-                  {t("common.profile")}
-                </NavLink>
-                <button
-                  type="button"
-                  className="ghost"
-                  onClick={handleLogout}
-                  disabled={loading}
-                >
-                  {t("common.logout")}
-                </button>
-              </>
-            ) : (
+            {!user && (
               <>
                 <NavLink to="/login" className="ghost-button">
                   {t("common.login")}
@@ -82,6 +60,52 @@ export default function Layout() {
                   {t("common.signup")}
                 </NavLink>
               </>
+            )}
+          </div>
+          <div className="nav-menu-wrapper">
+            <button
+              type="button"
+              className="hamburger-button"
+              aria-label="Toggle menu"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              <span />
+              <span />
+              <span />
+            </button>
+            {menuOpen && (
+              <div className="hamburger-menu">
+                <LanguageSelector />
+                <button
+                  type="button"
+                  className="ghost menu-item"
+                  onClick={toggleTheme}
+                  aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+                >
+                  {theme === "dark" ? "Light mode" : "Dark mode"}
+                </button>
+                {user ? (
+                  <>
+                    <NavLink
+                      to="/profile"
+                      className={({ isActive }) =>
+                        `ghost-button nav-profile${isActive ? " active" : ""}`
+                      }
+                    >
+                      {t("common.profile")}
+                    </NavLink>
+                    <button
+                      type="button"
+                      className="ghost menu-item"
+                      onClick={handleLogout}
+                      disabled={loading}
+                    >
+                      {t("common.logout")}
+                    </button>
+                  </>
+                ) : null}
+              </div>
             )}
           </div>
         </nav>

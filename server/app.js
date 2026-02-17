@@ -546,7 +546,11 @@ app.get("/api/host/overview", requireAuth, requireRole(["host", "admin"]), (req,
 });
 
 app.get("/api/host/listings", requireAuth, requireRole(["host", "admin"]), (req, res) => {
-  res.json(properties);
+  if (req.user.role === "admin") {
+    return res.json(properties);
+  }
+  const ownListings = properties.filter((property) => property.hostId === req.user.id);
+  return res.json(ownListings);
 });
 
 app.post("/api/host/listings", requireAuth, requireRole(["host", "admin"]), (req, res) => {
@@ -582,7 +586,7 @@ app.post("/api/host/listings", requireAuth, requireRole(["host", "admin"]), (req
     pricePerNight,
     maxGuests: Number(payload.maxGuests) || 1,
     rating: 0,
-    hostId: "u2",
+    hostId: req.user.id,
     images: Array.isArray(payload.images) && payload.images.length > 0
       ? payload.images
       : [
@@ -604,7 +608,16 @@ app.post("/api/host/listings", requireAuth, requireRole(["host", "admin"]), (req
 });
 
 app.get("/api/host/bookings", requireAuth, requireRole(["host", "admin"]), (req, res) => {
-  res.json(bookings);
+  if (req.user.role === "admin") {
+    return res.json(bookings);
+  }
+  const listingIds = new Set(
+    properties
+      .filter((property) => property.hostId === req.user.id)
+      .map((property) => property.id)
+  );
+  const ownBookings = bookings.filter((booking) => listingIds.has(booking.propertyId));
+  return res.json(ownBookings);
 });
 
 app.post("/api/host/ai-scan", requireAuth, requireRole(["host", "admin"]), (req, res) => {
