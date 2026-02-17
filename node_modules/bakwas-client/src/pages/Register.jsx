@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthProvider.jsx";
+import AlertBox from "../components/AlertBox.jsx";
 
 export default function Register() {
+  const { t } = useTranslation();
   const { requestRegisterOtp, verifyRegisterOtp } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({
@@ -27,17 +30,17 @@ export default function Register() {
     setLoading(true);
     try {
       if (form.password !== form.confirmPassword) {
-        setError("Passwords do not match.");
+        setError(t("errors.passwordMismatch"));
         setLoading(false);
         return;
       }
       if (form.password.length < 8) {
-        setError("Password must be at least 8 characters.");
+        setError(t("errors.passwordMin"));
         setLoading(false);
         return;
       }
       if (!form.termsAccepted) {
-        setError("Please accept terms and conditions.");
+        setError(t("errors.acceptTerms"));
         setLoading(false);
         return;
       }
@@ -49,7 +52,7 @@ export default function Register() {
         setSuccessMessage("OTP sent to your email.");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Could not send OTP.");
+      setError(err.response?.data?.message || t("errors.networkError"));
     } finally {
       setLoading(false);
     }
@@ -63,7 +66,7 @@ export default function Register() {
       await verifyRegisterOtp({ email: form.email, otp });
       navigate("/", { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed.");
+      setError(err.response?.data?.message || t("auth.registrationError"));
     } finally {
       setLoading(false);
     }
@@ -72,11 +75,11 @@ export default function Register() {
   return (
     <main className="section auth-page">
       <div className="panel auth-card">
-        <h2>Create account</h2>
-        <p className="subtitle">Join to book stays or host your space.</p>
+        <h2>{t("auth.createAccount")}</h2>
+        <p className="subtitle">{t("auth.signupSubtitle")}</p>
         <form className="auth-form" onSubmit={otpStage ? handleVerifyOtp : handleCreateAccount}>
           <label>
-            Full name
+            {t("auth.fullName")}
             <input
               value={form.name}
               onChange={(event) => setForm({ ...form, name: event.target.value })}
@@ -84,7 +87,7 @@ export default function Register() {
             />
           </label>
           <label>
-            Mobile number
+            {t("auth.mobileNumber")}
             <input
               value={form.phone}
               onChange={(event) => setForm({ ...form, phone: event.target.value })}
@@ -93,7 +96,7 @@ export default function Register() {
             />
           </label>
           <label>
-            Email
+            {t("auth.email")}
             <input
               type="email"
               value={form.email}
@@ -103,7 +106,7 @@ export default function Register() {
             />
           </label>
           <label>
-            Password
+            {t("auth.password")}
             <input
               type="password"
               value={form.password}
@@ -113,7 +116,7 @@ export default function Register() {
             />
           </label>
           <label>
-            Confirm password
+            {t("auth.confirmPassword")}
             <input
               type="password"
               value={form.confirmPassword}
@@ -125,14 +128,14 @@ export default function Register() {
             />
           </label>
           <label>
-            Account type
+            {t("auth.accountType")}
             <select
               value={form.role}
               onChange={(event) => setForm({ ...form, role: event.target.value })}
               disabled={otpStage}
             >
-              <option value="guest">Guest</option>
-              <option value="host">Host</option>
+              <option value="guest">{t("auth.guest")}</option>
+              <option value="host">{t("auth.host")}</option>
             </select>
           </label>
           {!otpStage && (
@@ -142,30 +145,44 @@ export default function Register() {
                 checked={form.termsAccepted}
                 onChange={(event) => setForm({ ...form, termsAccepted: event.target.checked })}
               />
-              I agree to the Terms and Conditions
+              {t("auth.termsAccepted")}
             </label>
           )}
           {otpStage && (
             <label>
-              Enter OTP
+              {t("forgotPassword.enterOtp")}
               <input
                 value={otp}
                 onChange={(event) => setOtp(event.target.value)}
                 maxLength={6}
                 required
-                placeholder="6-digit OTP"
+                placeholder={t("forgotPassword.enterOtp")}
               />
             </label>
           )}
-          {successMessage && <p className="success">{successMessage}</p>}
-          {error && <p className="error">{error}</p>}
+          {successMessage && (
+            <AlertBox
+              type="success"
+              title={t("common.success")}
+              message={successMessage}
+              onDismiss={() => setSuccessMessage("")}
+            />
+          )}
+          {error && (
+            <AlertBox
+              type="error"
+              title={t("auth.registrationError")}
+              message={error}
+              onDismiss={() => setError("")}
+            />
+          )}
           <button type="submit" className="primary" disabled={loading}>
-            {loading ? "Please wait..." : otpStage ? "Verify OTP" : "Create account"}
+            {loading ? t("auth.pleaseWait") : otpStage ? t("forgotPassword.verifyOtp") : t("auth.createAccount")}
           </button>
         </form>
         <div className="auth-links">
           <span>
-            Already have an account? <Link to="/login">Login</Link>
+            {t("auth.haveAccount")} <Link to="/login">{t("auth.loginLink")}</Link>
           </span>
         </div>
       </div>

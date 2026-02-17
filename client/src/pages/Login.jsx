@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthProvider.jsx";
 import CaptchaField from "../components/CaptchaField.jsx";
+import AlertBox from "../components/AlertBox.jsx";
 
 export default function Login() {
+  const { t } = useTranslation();
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -25,7 +28,7 @@ export default function Login() {
       const next = location.state?.from || "/";
       navigate(next, { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed.");
+      setError(err.response?.data?.message || t("errors.loginFailed"));
     } finally {
       setLoading(false);
     }
@@ -34,11 +37,11 @@ export default function Login() {
   return (
     <main className="section auth-page">
       <div className="panel auth-card">
-        <h2>Welcome back</h2>
-        <p className="subtitle">Login to manage your stays and listings.</p>
+        <h2>{t("auth.welcomeBack")}</h2>
+        <p className="subtitle">{t("auth.loginSubtitle")}</p>
         <form className="auth-form" onSubmit={handleSubmit}>
           <label>
-            Email
+            {t("auth.email")}
             <input
               type="email"
               value={form.email}
@@ -47,7 +50,7 @@ export default function Login() {
             />
           </label>
           <label>
-            Password
+            {t("auth.password")}
             <input
               type="password"
               value={form.password}
@@ -61,15 +64,20 @@ export default function Login() {
             onChange={setCaptcha}
             disabled={loading}
           />
-          {error && <p className="error">{error}</p>}
+          <AlertBox
+            type="error"
+            title={t("auth.loginFailed")}
+            message={error}
+            onDismiss={() => setError("")}
+          />
           <button type="submit" className="primary" disabled={loading}>
-            {loading ? "Signing in..." : "Login"}
+            {loading ? t("auth.signingIn") : t("common.login")}
           </button>
         </form>
         <div className="auth-links">
-          <Link to="/forgot-password">Forgot password?</Link>
+          <Link to="/forgot-password">{t("auth.forgotPassword")}</Link>
           <span>
-            New here? <Link to="/register">Create account</Link>
+            {t("auth.noAccount")} <Link to="/register">{t("auth.registerLink")}</Link>
           </span>
         </div>
       </div>

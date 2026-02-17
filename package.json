@@ -8,7 +8,7 @@
   "scripts": {
     "dev:server": "npm --workspace server run dev",
     "dev:client": "npm --workspace client run dev",
-    "dev": "powershell -Command \"Start-Process powershell -ArgumentList 'npm --workspace server run dev'; npm --workspace client run dev\"",
+    "dev": "powershell -Command \"Start-Process powershell -ArgumentList '& npm.cmd --workspace server run dev'; & npm.cmd --workspace client run dev\"",
     "build": "npm --workspace client run build",
     "start": "npm --workspace server run start"
   }

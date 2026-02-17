@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "./auth/AuthProvider.jsx";
 import { useTheme } from "./ThemeProvider.jsx";
+import LanguageSelector from "./components/LanguageSelector.jsx";
 
 export default function Layout() {
+  const { t } = useTranslation();
   const { user, logout, loading } = useAuth();
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -37,6 +40,7 @@ export default function Layout() {
             StayEase
           </NavLink>
           <div className="nav-links">
+            <LanguageSelector />
             <button
               type="button"
               className="theme-toggle"
@@ -45,11 +49,11 @@ export default function Layout() {
             >
               {theme === "dark" ? "☀" : "☾"}
             </button>
-            <NavLink to="/">Home</NavLink>
+            <NavLink to="/">{t("nav.home")}</NavLink>
             {user && (user.role === "host" || user.role === "admin") && (
-              <NavLink to="/host">Host Dashboard</NavLink>
+              <NavLink to="/host">{t("nav.hostDashboard")}</NavLink>
             )}
-            {user && user.role === "admin" && <NavLink to="/admin">Admin</NavLink>}
+            {user && user.role === "admin" && <NavLink to="/admin">{t("nav.admin")}</NavLink>}
             {user ? (
               <>
                 <NavLink
@@ -58,7 +62,7 @@ export default function Layout() {
                     `ghost-button nav-profile${isActive ? " active" : ""}`
                   }
                 >
-                  Profile
+                  {t("common.profile")}
                 </NavLink>
                 <button
                   type="button"
@@ -66,16 +70,16 @@ export default function Layout() {
                   onClick={handleLogout}
                   disabled={loading}
                 >
-                  Logout
+                  {t("common.logout")}
                 </button>
               </>
             ) : (
               <>
                 <NavLink to="/login" className="ghost-button">
-                  Login
+                  {t("common.login")}
                 </NavLink>
                 <NavLink to="/register" className="primary">
-                  Sign up
+                  {t("common.signup")}
                 </NavLink>
               </>
             )}
@@ -86,11 +90,11 @@ export default function Layout() {
       <footer className="footer">
         <div>
           <h3>StayEase</h3>
-          <p>Dummy MERN booking platform for demo and planning.</p>
+          <p>{t("footer.description")}</p>
         </div>
         <div>
-          <p>Support</p>
-          <span>help@stayease.demo</span>
+          <p>{t("footer.support")}</p>
+          <span>{t("footer.supportEmail")}</span>
         </div>
       </footer>
     </div>

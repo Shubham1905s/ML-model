@@ -29,7 +29,11 @@ export function ThemeProvider({ children }) {
   }, []);
 
   const toggleTheme = useCallback(() => {
+    document.documentElement.classList.add("theme-transitioning");
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+    window.setTimeout(() => {
+      document.documentElement.classList.remove("theme-transitioning");
+    }, 400);
   }, []);
 
   return (

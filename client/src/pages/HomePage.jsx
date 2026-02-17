@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import api from "../api.js";
 import { useAuth } from "../auth/AuthProvider.jsx";
 import CaptchaField from "../components/CaptchaField.jsx";
-
-const filters = ["Price: Low to High", "Price: High to Low", "Top Rated", "Most Popular"];
 
 const formatNumber = (value) => Number(value || 0).toLocaleString("en-IN");
 const formatCurrency = (value) => `INR ${formatNumber(value)}`;
@@ -25,6 +24,7 @@ const defaultBookingForm = {
 };
 
 export default function HomePage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [properties, setProperties] = useState([]);
   const [reviews, setReviews] = useState([]);
@@ -97,11 +97,11 @@ export default function HomePage() {
     setBookingMessage("");
 
     if (!user) {
-      setBookingError("Please login as a guest user to book.");
+      setBookingError(t("home.booking.loginToBook"));
       return;
     }
     if (user.role !== "guest") {
-      setBookingError("Only guest users can book properties.");
+      setBookingError(t("home.booking.hostCannotBook"));
       return;
     }
     if (!selectedProperty) {
@@ -155,18 +155,16 @@ export default function HomePage() {
       <section className="hero">
         <div className="hero-content">
           <div>
-            <p className="eyebrow">Trusted stays across India</p>
-            <h1>Book stays that feel like home, instantly.</h1>
-            <p className="subtitle">
-              Find verified homes, villas, and hotels in top destinations with transparent pricing and guest-first support.
-            </p>
+            <p className="eyebrow">{t("home.hero.eyebrow")}</p>
+            <h1>{t("home.hero.title")}</h1>
+            <p className="subtitle">{t("home.hero.subtitle")}</p>
             <div className="hero-actions">
-              <button type="button" className="primary">Explore stays</button>
-              <Link to="/become-host" className="ghost-button">Become a host</Link>
+              <button type="button" className="primary">{t("home.hero.exploreStays")}</button>
+              <Link to="/become-host" className="ghost-button">{t("home.hero.becomeHost")}</Link>
             </div>
           </div>
           <div className="hero-card">
-            <h3>Popular destinations</h3>
+            <h3>{t("home.popularDestinations")}</h3>
             {topDestinations.length > 0 ? (
               <ul>
                 {topDestinations.map((destination) => (
@@ -179,7 +177,7 @@ export default function HomePage() {
                 ))}
               </ul>
             ) : (
-              <p>Loading destinations...</p>
+              <p>{t("common.loading")}</p>
             )}
           </div>
         </div>
@@ -187,20 +185,20 @@ export default function HomePage() {
 
       <section className="search-panel">
         <div>
-          <h2>Search stays</h2>
-          <p>Filter by location, guests, and property type to find the right stay.</p>
+          <h2>{t("home.search.title")}</h2>
+          <p>{t("home.search.subtitle")}</p>
         </div>
         <form onSubmit={handleSearch} className="search-form">
           <label>
-            Location
+            {t("home.search.location")}
             <input
               value={search.location}
               onChange={(event) => setSearch({ ...search, location: event.target.value })}
-              placeholder="Goa, Bengaluru, Jaipur"
+              placeholder={t("home.search.location")}
             />
           </label>
           <label>
-            Guests
+            {t("home.search.guests")}
             <input
               type="number"
               min="1"
@@ -209,29 +207,29 @@ export default function HomePage() {
             />
           </label>
           <label>
-            Property type
+            {t("home.search.propertyType")}
             <select value={search.type} onChange={(event) => setSearch({ ...search, type: event.target.value })}>
-              <option value="">Any</option>
-              <option value="Hotel">Hotel</option>
-              <option value="Apartment">Apartment</option>
-              <option value="Villa">Villa</option>
-              <option value="Hostel">Hostel</option>
+              <option value="">{t("home.search.any")}</option>
+              <option value="Hotel">{t("home.search.hotel")}</option>
+              <option value="Apartment">{t("home.search.apartment")}</option>
+              <option value="Villa">{t("home.search.villa")}</option>
+              <option value="Hostel">{t("home.search.hostel")}</option>
             </select>
           </label>
-          <button type="submit" className="primary">Search</button>
+          <button type="submit" className="primary">{t("home.search.searchBtn")}</button>
         </form>
         {searchResults && (
           <div className="search-results">
-            <p>Found {formatNumber(searchResults.results.length)} stays for {searchResults.criteria.location || "all locations"}</p>
+            <p>{t("home.search.found", { count: formatNumber(searchResults.results.length), location: searchResults.criteria.location || "" })}</p>
           </div>
         )}
       </section>
 
       <section className="section">
         <div className="section-head">
-          <h2>Featured properties</h2>
+          <h2>{t("home.featured")}</h2>
           <div className="filters">
-            {filters.map((filter) => (
+            {[t("home.filters.priceLowHigh"), t("home.filters.priceHighLow"), t("home.filters.topRated"), t("home.filters.mostPopular")].map((filter) => (
               <button type="button" key={filter}>{filter}</button>
             ))}
           </div>
@@ -245,13 +243,13 @@ export default function HomePage() {
                   <h3>{property.name}</h3>
                   <p>{property.type} in {property.location.city}</p>
                 </div>
-                <p className="price">{formatCurrency(property.pricePerNight)} / night</p>
+                <p className="price">{formatCurrency(property.pricePerNight)} {t("home.perNight")}</p>
                 <div className="meta">
                   <span>{formatRating(property.rating)}</span>
-                  <span>Up to {property.maxGuests} guests</span>
+                  <span>{t("home.upToGuests", { count: property.maxGuests })}</span>
                 </div>
                 <button type="button" className="ghost" onClick={() => setSelectedPropertyId(property.id)}>
-                  View details
+                  {t("home.details.viewDetails")}
                 </button>
               </div>
             </article>
@@ -262,7 +260,7 @@ export default function HomePage() {
       <section className="section alt">
         <div className="detail-layout">
           <div>
-            <h2>Property details</h2>
+            <h2>{t("home.details.title")}</h2>
             {selectedProperty ? (
               <>
                 <p>{selectedProperty.description}</p>
@@ -272,15 +270,15 @@ export default function HomePage() {
                     <p>{selectedProperty.type} in {selectedProperty.location.city}</p>
                   </div>
                   <div className="detail-box">
-                    <h4>Availability</h4>
-                    <p>Check-in: {selectedProperty.availability?.checkIn || "14:00"} | Check-out: {selectedProperty.availability?.checkOut || "11:00"}</p>
+                    <h4>{t("home.details.checkIn")}</h4>
+                    <p>{t("home.details.checkIn")}: {selectedProperty.availability?.checkIn || "14:00"} | {t("home.details.checkOut")}: {selectedProperty.availability?.checkOut || "11:00"}</p>
                   </div>
                   <div className="detail-box">
-                    <h4>Blackout Dates</h4>
+                    <h4>{t("home.details.blackoutDates")}</h4>
                     <p>
                       {selectedProperty.availability?.blackoutDates?.length
                         ? selectedProperty.availability.blackoutDates.join(", ")
-                        : "No blocked dates"}
+                        : t("home.details.noBlackout")}
                     </p>
                   </div>
                 </div>
@@ -291,15 +289,15 @@ export default function HomePage() {
                 </div>
               </>
             ) : (
-              <p>No property selected.</p>
+              <p>{t("home.details.noProperty")}</p>
             )}
           </div>
 
           <form className="booking-card" onSubmit={handleBookNow}>
-            <h3>Book this stay</h3>
+            <h3>{t("home.booking.title")}</h3>
             <div className="booking-row">
               <label>
-                Check-in
+                {t("home.booking.checkIn")}
                 <input
                   type="date"
                   value={bookingForm.checkInDate}
@@ -307,7 +305,7 @@ export default function HomePage() {
                 />
               </label>
               <label>
-                Check-out
+                {t("home.booking.checkOut")}
                 <input
                   type="date"
                   value={bookingForm.checkOutDate}
@@ -316,7 +314,7 @@ export default function HomePage() {
               </label>
             </div>
             <label>
-              Guests
+              {t("home.booking.guests")}
               <input
                 type="number"
                 min="1"
@@ -326,14 +324,14 @@ export default function HomePage() {
               />
             </label>
             <label>
-              Payment method
+              {t("home.booking.paymentMethod")}
               <select
                 value={bookingForm.paymentMethod}
                 onChange={(event) => setBookingForm({ ...bookingForm, paymentMethod: event.target.value })}
               >
-                <option value="Onsite Payment">Onsite Payment (Pay at property)</option>
-                <option value="Net Banking">Net Banking</option>
-                <option value="UPI">UPI</option>
+                <option value="Onsite Payment">{t("home.booking.onsitePayment")}</option>
+                <option value="Net Banking">{t("home.booking.netBanking")}</option>
+                <option value="UPI">{t("home.booking.upi")}</option>
               </select>
             </label>
             <label className="checkbox-row">
@@ -342,7 +340,7 @@ export default function HomePage() {
                 checked={bookingForm.termsAccepted}
                 onChange={(event) => setBookingForm({ ...bookingForm, termsAccepted: event.target.checked })}
               />
-              I agree to Terms and Conditions
+              {t("home.booking.terms")}
             </label>
             <CaptchaField
               purpose="booking"
@@ -351,15 +349,15 @@ export default function HomePage() {
               disabled={bookingLoading}
             />
             <div className="price-breakdown">
-              <div><span>Base price ({nights} nights)</span><span>{formatCurrency(pricing.base)}</span></div>
-              <div><span>Taxes</span><span>{formatCurrency(pricing.taxes)}</span></div>
-              <div><span>Platform fee</span><span>{formatCurrency(pricing.platformFee)}</span></div>
-              <div className="total"><span>Total</span><span>{formatCurrency(pricing.total)}</span></div>
+              <div><span>{t("home.booking.basePrice", { nights })}</span><span>{formatCurrency(pricing.base)}</span></div>
+              <div><span>{t("home.booking.taxes")}</span><span>{formatCurrency(pricing.taxes)}</span></div>
+              <div><span>{t("home.booking.platformFee")}</span><span>{formatCurrency(pricing.platformFee)}</span></div>
+              <div className="total"><span>{t("home.booking.total")}</span><span>{formatCurrency(pricing.total)}</span></div>
             </div>
             <button type="submit" className="primary" disabled={bookingLoading || user?.role === "host"}>
-              {bookingLoading ? "Booking..." : "Book now"}
+              {bookingLoading ? t("home.booking.booking") : t("home.booking.bookNow")}
             </button>
-            {user?.role === "host" && <p className="small error">Host users cannot book properties.</p>}
+            {user?.role === "host" && <p className="small error">{t("home.booking.hostCannotBook")}</p>}
             {bookingError && <p className="error">{bookingError}</p>}
             {bookingMessage && <p className="success">{bookingMessage}</p>}
           </form>
@@ -368,12 +366,12 @@ export default function HomePage() {
 
       {user && (user.role === "guest" || user.role === "admin") && (
         <section className="section">
-          <h2>Guest dashboard</h2>
+          <h2>{t("home.dashboard.title")}</h2>
           <div className="dashboard">
             <div className="panel">
-              <h3>Bookings</h3>
+              <h3>{t("home.dashboard.bookings")}</h3>
               {bookings.length === 0 ? (
-                <p className="small">No bookings yet.</p>
+                <p className="small">{t("home.dashboard.noBookings")}</p>
               ) : (
                 bookings.map((booking) => (
                   <div className="panel-row" key={booking.id}>
@@ -387,7 +385,7 @@ export default function HomePage() {
               )}
             </div>
             <div className="panel">
-              <h3>Reviews</h3>
+              <h3>{t("home.dashboard.reviews")}</h3>
               {reviews.map((review) => (
                 <div className="panel-row" key={review.id}>
                   <div>
