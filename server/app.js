@@ -30,7 +30,7 @@ import {
   verifyPassword,
   verifyRefreshToken
 } from "./utils/auth.js";
-import { requireAuth, requireRole } from "./middleware/auth.js";
+import { optionalAuth, requireAuth, requireRole } from "./middleware/auth.js";
 import { issueCaptcha, verifyCaptcha } from "./utils/captcha.js";
 import { sendOtpEmail } from "./utils/mailer.js";
 
@@ -62,6 +62,24 @@ const COOKIE_OPTIONS = {
   secure: cookieSecure,
   path: "/api/auth"
 };
+
+function getVisiblePropertiesForUser(user) {
+  if (!user) {
+    return properties.filter((property) => property.status === "Active");
+  }
+
+  if (user.role === "admin") {
+    return properties;
+  }
+
+  if (user.role === "host") {
+    return properties.filter(
+      (property) => property.status === "Active" || property.hostId === user.id
+    );
+  }
+
+  return properties.filter((property) => property.status === "Active");
+}
 
 app.use(
   cors({
@@ -460,21 +478,21 @@ app.get("/api/amenities", (req, res) => {
   res.json(amenities);
 });
 
-app.get("/api/properties", (req, res) => {
-  res.json(properties);
+app.get("/api/properties", optionalAuth, (req, res) => {
+  return res.json(getVisiblePropertiesForUser(req.user));
 });
 
-app.get("/api/properties/:id", (req, res) => {
-  const property = properties.find((item) => item.id === req.params.id);
+app.get("/api/properties/:id", optionalAuth, (req, res) => {
+  const property = getVisiblePropertiesForUser(req.user).find((item) => item.id === req.params.id);
   if (!property) {
     return res.status(404).json({ message: "Property not found" });
   }
-  res.json(property);
+  return res.json(property);
 });
 
-app.get("/api/search", (req, res) => {
+app.get("/api/search", optionalAuth, (req, res) => {
   const { location, guests, type } = req.query;
-  const results = properties.filter((property) => {
+  const results = getVisiblePropertiesForUser(req.user).filter((property) => {
     const matchesLocation = location
       ? property.location.city.toLowerCase().includes(String(location).toLowerCase())
       : true;
@@ -491,11 +509,14 @@ app.get("/api/search", (req, res) => {
   });
 });
 
-app.get("/api/bookings", (req, res) => {
-  res.json(bookings);
+app.get("/api/bookings", requireAuth, requireRole(["guest", "admin"]), (req, res) => {
+  if (req.user.role === "admin") {
+    return res.json(bookings);
+  }
+  return res.json(bookings.filter((booking) => booking.guestId === req.user.id));
 });
 
-app.post("/api/bookings", (req, res) => {
+app.post("/api/bookings", requireAuth, requireRole(["guest"]), (req, res) => {
   const { captchaId, captchaText } = req.body || {};
   if (!captchaId || !captchaText) {
     return res.status(400).json({ message: "CAPTCHA is required." });
@@ -553,7 +574,7 @@ app.get("/api/host/listings", requireAuth, requireRole(["host", "admin"]), (req,
   return res.json(ownListings);
 });
 
-app.post("/api/host/listings", requireAuth, requireRole(["guest", "host", "admin"]), (req, res) => {
+app.post("/api/host/listings", requireAuth, requireRole(["host", "admin"]), (req, res) => {
   const payload = req.body || {};
   const captchaOk = verifyCaptcha({
     captchaId: payload.captchaId,
@@ -620,7 +641,7 @@ app.get("/api/host/bookings", requireAuth, requireRole(["host", "admin"]), (req,
   return res.json(ownBookings);
 });
 
-app.post("/api/host/ai-scan", requireAuth, requireRole(["guest", "host", "admin"]), (req, res) => {
+app.post("/api/host/ai-scan", requireAuth, requireRole(["host", "admin"]), (req, res) => {
   res.json({
     summary: {
       title: "Cozy 1BHK with balcony",
