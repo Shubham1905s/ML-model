@@ -73,7 +73,6 @@ export async function sendOtpEmail({ to, otp }) {
       }
       <div style="max-width: 640px; margin: 0 auto; padding: 0 16px;">
         <p style="margin: 0 0 12px; font-size: 16px;">Welcome to StayEase!</p>
-        <p style="margin: 0 0 12px; font-size: 18px; font-weight: 700;">OTP: ${otp}</p>
         <p style="margin: 0 0 12px; font-size: 16px;">Your One-Time Password (OTP) is: <strong>${otp}</strong></p>
         <p style="margin: 0 0 12px; font-size: 16px;">This OTP is valid for 10 minutes.</p>
         <p style="margin: 0 0 12px; font-size: 16px;">
@@ -97,8 +96,7 @@ export async function sendOtpEmail({ to, otp }) {
     to,
     subject: "Your StayEase OTP Code",
     text:
-      `Welcome to StayEase!\n` +
-      `OTP: ${otp}\n\n` +
+      `Welcome to StayEase!\n\n` +
       `Your One-Time Password (OTP) is: ${otp}\n` +
       `This OTP is valid for 10 minutes.\n\n` +
       `Please enter the OTP in the verification section to complete your registration.\n\n` +
