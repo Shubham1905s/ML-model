@@ -158,11 +158,35 @@ export default function Register() {
               />
               <button
                 type="button"
-                className="ghost password-action"
+                className="ghost password-icon-button"
                 onClick={() => setShowPassword((current) => !current)}
                 disabled={otpStage}
+                aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
               >
-                {showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
+                {showPassword ? (
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M3 3l18 18M9.9 9.9A3 3 0 0 0 12 15a3 3 0 0 0 2.1-.9M7.5 7.5C5.2 8.9 3.6 11 3 12c1 1.7 4 6 9 6 1.6 0 3.1-.4 4.4-1.1M12 6c5 0 8 4.3 9 6-.4.7-1.2 2-2.6 3.2"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M3 12c1.1-1.9 4.4-6 9-6s7.9 4.1 9 6c-1.1 1.9-4.4 6-9 6s-7.9-4.1-9-6Z"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="1.6" />
+                  </svg>
+                )}
               </button>
             </div>
             <div className="password-actions">
@@ -190,11 +214,35 @@ export default function Register() {
               />
               <button
                 type="button"
-                className="ghost password-action"
+                className="ghost password-icon-button"
                 onClick={() => setShowConfirmPassword((current) => !current)}
                 disabled={otpStage}
+                aria-label={showConfirmPassword ? t("auth.hidePassword") : t("auth.showPassword")}
               >
-                {showConfirmPassword ? t("auth.hidePassword") : t("auth.showPassword")}
+                {showConfirmPassword ? (
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M3 3l18 18M9.9 9.9A3 3 0 0 0 12 15a3 3 0 0 0 2.1-.9M7.5 7.5C5.2 8.9 3.6 11 3 12c1 1.7 4 6 9 6 1.6 0 3.1-.4 4.4-1.1M12 6c5 0 8 4.3 9 6-.4.7-1.2 2-2.6 3.2"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M3 12c1.1-1.9 4.4-6 9-6s7.9 4.1 9 6c-1.1 1.9-4.4 6-9 6s-7.9-4.1-9-6Z"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="1.6" />
+                  </svg>
+                )}
               </button>
             </div>
           </label>
