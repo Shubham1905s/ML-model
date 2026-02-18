@@ -22,6 +22,47 @@ export default function Register() {
   const [successMessage, setSuccessMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const generateStrongPassword = () => {
+    const lowercase = "abcdefghijkmnopqrstuvwxyz";
+    const uppercase = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+    const numbers = "23456789";
+    const symbols = "!@#$%&*?-_";
+    const all = `${lowercase}${uppercase}${numbers}${symbols}`;
+    const length = 14;
+    const cryptoObj = window.crypto || window.msCrypto;
+    const randomIndex = (max) => {
+      if (cryptoObj && cryptoObj.getRandomValues) {
+        const buffer = new Uint32Array(1);
+        cryptoObj.getRandomValues(buffer);
+        return buffer[0] % max;
+      }
+      return Math.floor(Math.random() * max);
+    };
+    const chars = [
+      lowercase[randomIndex(lowercase.length)],
+      uppercase[randomIndex(uppercase.length)],
+      numbers[randomIndex(numbers.length)],
+      symbols[randomIndex(symbols.length)]
+    ];
+    while (chars.length < length) {
+      chars.push(all[randomIndex(all.length)]);
+    }
+    for (let i = chars.length - 1; i > 0; i -= 1) {
+      const j = randomIndex(i + 1);
+      [chars[i], chars[j]] = [chars[j], chars[i]];
+    }
+    return chars.join("");
+  };
+
+  const handleSuggestPassword = () => {
+    const suggested = generateStrongPassword();
+    setForm({ ...form, password: suggested, confirmPassword: suggested });
+    setShowPassword(true);
+    setShowConfirmPassword(true);
+  };
 
   const handleCreateAccount = async (event) => {
     event.preventDefault();
@@ -107,25 +148,55 @@ export default function Register() {
           </label>
           <label>
             {t("auth.password")}
-            <input
-              type="password"
-              value={form.password}
-              onChange={(event) => setForm({ ...form, password: event.target.value })}
-              required
-              disabled={otpStage}
-            />
+            <div className="password-input-row">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={form.password}
+                onChange={(event) => setForm({ ...form, password: event.target.value })}
+                required
+                disabled={otpStage}
+              />
+              <button
+                type="button"
+                className="ghost password-action"
+                onClick={() => setShowPassword((current) => !current)}
+                disabled={otpStage}
+              >
+                {showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
+              </button>
+            </div>
+            <div className="password-actions">
+              <button
+                type="button"
+                className="ghost password-action"
+                onClick={handleSuggestPassword}
+                disabled={otpStage}
+              >
+                {t("auth.suggestStrongPassword")}
+              </button>
+            </div>
           </label>
           <label>
             {t("auth.confirmPassword")}
-            <input
-              type="password"
-              value={form.confirmPassword}
-              onChange={(event) =>
-                setForm({ ...form, confirmPassword: event.target.value })
-              }
-              required
-              disabled={otpStage}
-            />
+            <div className="password-input-row">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                value={form.confirmPassword}
+                onChange={(event) =>
+                  setForm({ ...form, confirmPassword: event.target.value })
+                }
+                required
+                disabled={otpStage}
+              />
+              <button
+                type="button"
+                className="ghost password-action"
+                onClick={() => setShowConfirmPassword((current) => !current)}
+                disabled={otpStage}
+              >
+                {showConfirmPassword ? t("auth.hidePassword") : t("auth.showPassword")}
+              </button>
+            </div>
           </label>
           <label>
             {t("auth.accountType")}

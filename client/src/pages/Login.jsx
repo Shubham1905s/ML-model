@@ -14,6 +14,7 @@ export default function Login() {
   const [captcha, setCaptcha] = useState({ captchaId: "", text: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -51,12 +52,22 @@ export default function Login() {
           </label>
           <label>
             {t("auth.password")}
-            <input
-              type="password"
-              value={form.password}
-              onChange={(event) => setForm({ ...form, password: event.target.value })}
-              required
-            />
+            <div className="password-input-row">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={form.password}
+                onChange={(event) => setForm({ ...form, password: event.target.value })}
+                required
+              />
+              <button
+                type="button"
+                className="ghost password-action"
+                onClick={() => setShowPassword((current) => !current)}
+                disabled={loading}
+              >
+                {showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
+              </button>
+            </div>
           </label>
           <CaptchaField
             purpose="login"

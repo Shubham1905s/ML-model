@@ -978,6 +978,27 @@ textarea {
   margin-top: 16px;
 }
 
+.password-input-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.password-input-row input {
+  flex: 1;
+}
+
+.password-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.password-action {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
 .auth-links {
   display: flex;
   justify-content: space-between;
