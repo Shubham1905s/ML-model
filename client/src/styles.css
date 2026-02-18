@@ -979,13 +979,14 @@ textarea {
 }
 
 .password-input-row {
+  position: relative;
   display: flex;
-  gap: 10px;
   align-items: center;
 }
 
 .password-input-row input {
   flex: 1;
+  padding-right: 46px;
 }
 
 .password-actions {
@@ -1000,8 +1001,12 @@ textarea {
 }
 
 .password-icon-button {
-  width: 40px;
-  height: 40px;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
   padding: 0;
   display: grid;
   place-items: center;
