@@ -10,10 +10,17 @@
       href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <script type="module" crossorigin src="/assets/index-LrqqNjj-.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-DcnS7yYY.css">
+    <script type="module" crossorigin src="/assets/index-CbUY2bBB.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CdbMO5bw.css">
   </head>
   <body>
-    <div id="root"></div>
+    <script>
+      (function() {
+        var t = localStorage.getItem('theme');
+        if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      })();
+    </script>
+    <div id="root"></div>
   </body>
 </html>
