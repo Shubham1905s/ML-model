@@ -151,7 +151,7 @@ React Router 6 with a `Layout` wrapper that provides the header/nav/footer shell
 | `/become-host`    | BecomeHost       | Host or Admin       |
 
 ### State Management
-
+ 
 - **AuthProvider** (React Context) — manages user session, token storage (`localStorage` for access token, httpOnly cookie for refresh token), and exposes auth actions (`login`, `logout`, `requestRegisterOtp`, `verifyRegisterOtp`, `forgotPassword`, `resetPassword`, `changePassword`, `updateProfile`).
 - **ProtectedRoute** — wrapper component that redirects to `/login` if unauthenticated, or to `/` if the user's role is insufficient.
 
