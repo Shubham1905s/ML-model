@@ -188,7 +188,7 @@ const resources = {
         pendingApprovals: "Pending Approvals"
       },
       footer: {
-        description: "Dummy MERN booking platform for demo and planning.",
+        description: "Feel stays like Home.",
         support: "Support",
         supportEmail: "help@stayease.demo"
       },

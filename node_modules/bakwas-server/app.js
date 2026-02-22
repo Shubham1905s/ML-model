@@ -42,11 +42,8 @@ dotenv.config({ path: path.resolve(__dirname, ".env"), override: false });
 
 const app = express();
 const defaultOrigins = ["http://localhost:5173"];
-const allowedOrigins = (
-  process.env.CLIENT_ORIGINS ||
-  process.env.CLIENT_ORIGIN ||
-  defaultOrigins.join(",")
-)
+const configuredOrigins = process.env.CLIENT_ORIGINS || process.env.CLIENT_ORIGIN || "";
+const allowedOrigins = (configuredOrigins || defaultOrigins.join(","))
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
@@ -84,6 +81,10 @@ function getVisiblePropertiesForUser(user) {
 app.use(
   cors({
     origin(origin, callback) {
+      if (!configuredOrigins) {
+        // By default allow all origins; set CLIENT_ORIGINS to lock this down.
+        return callback(null, true);
+      }
       if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }

@@ -3,21 +3,20 @@ import crypto from "crypto";
 const CAPTCHA_LENGTH = 6;
 const CAPTCHA_TTL_MS = 5 * 60 * 1000;
 const SPECIALS = "@#$%&*?!";
-
-const captchaStore = new Map();
+const CAPTCHA_SECRET =
+  process.env.CAPTCHA_SECRET || process.env.ACCESS_TOKEN_SECRET || "dev-captcha-secret";
 
 function randomChar(source) {
   const index = crypto.randomInt(0, source.length);
   return source[index];
 }
 
-function cleanupExpiredCaptchas() {
-  const now = Date.now();
-  for (const [id, value] of captchaStore.entries()) {
-    if (value.expiresAt <= now) {
-      captchaStore.delete(id);
-    }
-  }
+function toBase64Url(value) {
+  return Buffer.from(value)
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
 }
 
 function shuffle(value) {
@@ -27,6 +26,58 @@ function shuffle(value) {
     [chars[i], chars[j]] = [chars[j], chars[i]];
   }
   return chars.join("");
+}
+
+function signPayload(payloadBase64) {
+  return crypto
+    .createHmac("sha256", CAPTCHA_SECRET)
+    .update(payloadBase64)
+    .digest("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+}
+
+function issueCaptchaToken({ text, purpose, expiresAt }) {
+  const payload = {
+    text,
+    purpose,
+    expiresAt,
+    nonce: crypto.randomUUID()
+  };
+  const payloadBase64 = toBase64Url(JSON.stringify(payload));
+  const signature = signPayload(payloadBase64);
+  return `${payloadBase64}.${signature}`;
+}
+
+function parseCaptchaToken(captchaId) {
+  if (!captchaId || typeof captchaId !== "string" || !captchaId.includes(".")) {
+    return null;
+  }
+
+  const [payloadBase64, providedSignature] = captchaId.split(".", 2);
+  if (!payloadBase64 || !providedSignature) {
+    return null;
+  }
+
+  const expectedSignature = signPayload(payloadBase64);
+  const providedBuffer = Buffer.from(providedSignature);
+  const expectedBuffer = Buffer.from(expectedSignature);
+
+  if (
+    providedBuffer.length !== expectedBuffer.length ||
+    !crypto.timingSafeEqual(providedBuffer, expectedBuffer)
+  ) {
+    return null;
+  }
+
+  try {
+    const padded = payloadBase64.replace(/-/g, "+").replace(/_/g, "/");
+    const decoded = Buffer.from(padded, "base64").toString("utf8");
+    return JSON.parse(decoded);
+  } catch {
+    return null;
+  }
 }
 
 export function generateCaptchaText() {
@@ -65,14 +116,9 @@ export function createCaptchaSvg(text) {
 }
 
 export function issueCaptcha(purpose = "general") {
-  cleanupExpiredCaptchas();
-  const id = crypto.randomUUID();
   const text = generateCaptchaText();
-  captchaStore.set(id, {
-    text,
-    purpose,
-    expiresAt: Date.now() + CAPTCHA_TTL_MS
-  });
+  const expiresAt = Date.now() + CAPTCHA_TTL_MS;
+  const id = issueCaptchaToken({ text, purpose, expiresAt });
   return {
     captchaId: id,
     captchaSvg: createCaptchaSvg(text),
@@ -82,10 +128,8 @@ export function issueCaptcha(purpose = "general") {
  
  
 export function verifyCaptcha({ captchaId, captchaText, purpose = "general" }) {
-  cleanupExpiredCaptchas();
-  const found = captchaStore.get(captchaId);
+  const found = parseCaptchaToken(captchaId);
   if (!found) return false;
-  captchaStore.delete(captchaId);
-  if (found.purpose !== purpose || found.expiresAt <= Date.now()) return false;
-  return String(captchaText || "") === found.text;
+  if (found.purpose !== purpose || Number(found.expiresAt) <= Date.now()) return false;
+  return String(captchaText || "") === String(found.text || "");
 }
